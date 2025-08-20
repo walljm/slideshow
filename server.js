@@ -22,7 +22,8 @@ try {
         imageDuration: 5,
         folderPath: './media',
         fadeTransitionDuration: 1,
-        autoStart: true
+        autoStart: true,
+        zoomOnImage: true
     };
 }
 

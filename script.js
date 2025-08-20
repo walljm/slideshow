@@ -164,15 +164,18 @@ class Slideshow {
             mediaElement.style.maxWidth = '100%';
             mediaElement.style.maxHeight = '100%';
             
-            // Set animation duration to match image duration
-            const animationDuration = `${this.config.imageDuration}s`;
-            mediaElement.style.setProperty('--zoom-duration', animationDuration);
-            
-            // Alternate between zoom-in and zoom-out animations
-            if (this.currentIndex % 2 === 0) {
-                mediaElement.classList.add('zoom-in');
-            } else {
-                mediaElement.classList.add('zoom-out');
+            // Only apply zoom animation if enabled in config
+            if (this.config.zoomOnImage) {
+                // Set animation duration to match image duration
+                const animationDuration = `${this.config.imageDuration}s`;
+                mediaElement.style.setProperty('--zoom-duration', animationDuration);
+                
+                // Alternate between zoom-in and zoom-out animations
+                if (this.currentIndex % 2 === 0) {
+                    mediaElement.classList.add('zoom-in');
+                } else {
+                    mediaElement.classList.add('zoom-out');
+                }
             }
             
             mediaElement.addEventListener('load', () => {
