@@ -4,6 +4,11 @@ const path = require('path');
 
 const port = 3000;
 
+// Hardcoded supported file extensions (not configurable)
+const SUPPORTED_IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"];
+const SUPPORTED_VIDEO_EXTENSIONS = ["mp4", "webm", "ogg", "avi", "mov"];
+const SUPPORTED_EXTENSIONS = [...SUPPORTED_IMAGE_EXTENSIONS, ...SUPPORTED_VIDEO_EXTENSIONS];
+
 // Load configuration
 let config;
 try {
@@ -17,9 +22,7 @@ try {
         imageDuration: 5,
         folderPath: './media',
         fadeTransitionDuration: 1,
-        autoStart: true,
-        supportedImageExtensions: ["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"],
-        supportedVideoExtensions: ["mp4", "webm", "ogg", "avi", "mov"]
+        autoStart: true
     };
 }
 
@@ -45,7 +48,6 @@ const mimeTypes = {
 // Function to get media files from the configured folder
 function getMediaFiles() {
     const files = [];
-    const supportedExtensions = [...config.supportedImageExtensions, ...config.supportedVideoExtensions];
     
     try {
         if (!fs.existsSync(config.folderPath)) {
@@ -61,11 +63,11 @@ function getMediaFiles() {
             
             if (stats.isFile()) {
                 const extension = path.extname(entry).toLowerCase().substring(1);
-                if (supportedExtensions.includes(extension)) {
+                if (SUPPORTED_EXTENSIONS.includes(extension)) {
                     files.push({
                         name: entry,
                         path: fullPath,
-                        type: config.supportedVideoExtensions.includes(extension) ? 'video' : 'image'
+                        type: SUPPORTED_VIDEO_EXTENSIONS.includes(extension) ? 'video' : 'image'
                     });
                 }
             }

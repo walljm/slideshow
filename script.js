@@ -164,6 +164,17 @@ class Slideshow {
             mediaElement.style.maxWidth = '100%';
             mediaElement.style.maxHeight = '100%';
             
+            // Set animation duration to match image duration
+            const animationDuration = `${this.config.imageDuration}s`;
+            mediaElement.style.setProperty('--zoom-duration', animationDuration);
+            
+            // Alternate between zoom-in and zoom-out animations
+            if (this.currentIndex % 2 === 0) {
+                mediaElement.classList.add('zoom-in');
+            } else {
+                mediaElement.classList.add('zoom-out');
+            }
+            
             mediaElement.addEventListener('load', () => {
                 this.switchToContainer(nextContainer);
                 this.scheduleNext(this.config.imageDuration * 1000);
