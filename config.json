@@ -1,0 +1,8 @@
+{
+  "imageDuration": 5,
+  "folderPath": "/Users/walljm/Dropbox/Photos/cfc/bingo-night",
+  "fadeTransitionDuration": 1,
+  "autoStart": true,
+  "supportedImageExtensions": ["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"],
+  "supportedVideoExtensions": ["mp4", "webm", "ogg", "avi", "mov"]
+}
