@@ -4,6 +4,10 @@ const path = require('path');
 
 const port = 3000;
 
+// Determine if we're running from root or app directory
+const isRunningFromRoot = fs.existsSync('./app/config.json');
+const appDir = isRunningFromRoot ? './app' : '.';
+
 // Hardcoded supported file extensions (not configurable)
 const SUPPORTED_IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"];
 const SUPPORTED_VIDEO_EXTENSIONS = ["mp4", "webm", "ogg", "avi", "mov"];
@@ -12,7 +16,8 @@ const SUPPORTED_EXTENSIONS = [...SUPPORTED_IMAGE_EXTENSIONS, ...SUPPORTED_VIDEO_
 // Load configuration
 let config;
 try {
-    const configData = fs.readFileSync('./config.json', 'utf8');
+    const configPath = path.join(appDir, 'config.json');
+    const configData = fs.readFileSync(configPath, 'utf8');
     config = JSON.parse(configData);
     console.log('Configuration loaded:', config);
 } catch (error) {
@@ -144,11 +149,11 @@ const server = http.createServer((req, res) => {
     }
     
     // Serve static files
-    let filePath = '.' + url.pathname;
+    let filePath = path.join(appDir, url.pathname);
     
     // Default to index.html
-    if (filePath === './') {
-        filePath = './index.html';
+    if (url.pathname === '/') {
+        filePath = path.join(appDir, 'index.html');
     }
     
     const extname = String(path.extname(filePath)).toLowerCase();
