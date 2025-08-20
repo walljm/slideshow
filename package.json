@@ -1,16 +1,23 @@
 {
   "name": "slideshow-viewer",
   "version": "1.0.0",
-  "description": "A web-based slideshow viewer for images and videos",
-  "main": "server.js",
+  "description": "A web-based slideshow viewer for images and videos with Windows service support",
+  "main": "app/server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "node app/server.js",
+    "install-service": "npm install && cd service && node service.js install",
+    "uninstall-service": "cd service && node service.js uninstall",
+    "start-service": "cd service && node service.js start",
+    "stop-service": "cd service && node service.js stop",
+    "restart-service": "cd service && node service.js restart"
   },
-  "keywords": ["slideshow", "images", "videos", "viewer"],
+  "keywords": ["slideshow", "images", "videos", "viewer", "windows-service"],
   "author": "",
   "license": "MIT",
   "engines": {
     "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "node-windows": "^1.0.0-beta.8"
   }
 }
