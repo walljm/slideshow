@@ -5,6 +5,7 @@ const svc = new Service({
     name: 'Slideshow Server',
     description: 'A web-based slideshow application that serves media files',
     script: require('path').join(__dirname, '..', 'app', 'server.js'),
+    workingDirectory: require('path').join(__dirname, '..'),
     nodeOptions: [
         '--harmony',
         '--max_old_space_size=4096'
