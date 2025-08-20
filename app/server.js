@@ -123,27 +123,66 @@ const server = http.createServer((req, res) => {
         const fileName = decodeURIComponent(url.pathname.substring(7)); // Remove '/media/'
         const filePath = path.join(config.folderPath, fileName);
         
+        console.log(`Serving media file: ${fileName}`);
+        console.log(`Full file path: ${filePath}`);
+        
         // Security check: ensure the file is within the configured folder
         const resolvedPath = path.resolve(filePath);
         const resolvedFolder = path.resolve(config.folderPath);
         
+        console.log(`Resolved path: ${resolvedPath}`);
+        console.log(`Resolved folder: ${resolvedFolder}`);
+        
         if (!resolvedPath.startsWith(resolvedFolder)) {
+            console.log('Access denied - path outside configured folder');
             res.writeHead(403);
             res.end('Access denied');
             return;
         }
         
-        fs.readFile(filePath, (error, content) => {
-            if (error) {
+        // Check if file exists first
+        fs.access(filePath, fs.constants.F_OK, (accessError) => {
+            if (accessError) {
+                console.log(`File access error: ${accessError.message}`);
                 res.writeHead(404);
                 res.end('File not found');
-            } else {
+                return;
+            }
+            
+            // Get file stats to check size and set appropriate headers
+            fs.stat(filePath, (statError, stats) => {
+                if (statError) {
+                    console.log(`File stat error: ${statError.message}`);
+                    res.writeHead(500);
+                    res.end('Server error');
+                    return;
+                }
+                
                 const extname = String(path.extname(filePath)).toLowerCase();
                 const mimeType = mimeTypes[extname] || 'application/octet-stream';
                 
-                res.writeHead(200, { 'Content-Type': mimeType });
-                res.end(content);
-            }
+                console.log(`File size: ${stats.size} bytes`);
+                
+                // Set appropriate headers for large files
+                res.writeHead(200, {
+                    'Content-Type': mimeType,
+                    'Content-Length': stats.size,
+                    'Cache-Control': 'public, max-age=31536000' // Cache for 1 year
+                });
+                
+                // Stream the file instead of loading it all into memory
+                const readStream = fs.createReadStream(filePath);
+                
+                readStream.on('error', (streamError) => {
+                    console.log(`Stream error: ${streamError.message}`);
+                    if (!res.headersSent) {
+                        res.writeHead(500);
+                        res.end('Server error');
+                    }
+                });
+                
+                readStream.pipe(res);
+            });
         });
         return;
     }
