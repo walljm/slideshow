@@ -67,3 +67,17 @@ body {
     padding: 20px;
     border-radius: 8px;
 }
+
+.waiting {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 18px;
+    color: #959595;
+    z-index: 10;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    border-radius: 8px;
+}

@@ -18,12 +18,34 @@ class Slideshow {
             if (this.files.length > 0 && this.config.autoStart) {
                 this.startSlideshow();
             } else if (this.files.length === 0) {
-                this.showError('No media files found in the configured folder');
+                this.waitAndRetry();
             }
         } catch (error) {
             console.error('Initialization error:', error);
             this.showError('Failed to initialize slideshow: ' + error.message);
         }
+    }
+
+    async waitAndRetry() {
+        console.log('No media files found, waiting 5 seconds before checking again...');
+        this.showWaiting('No media files found. Checking again in 5 seconds...');
+        
+        setTimeout(async () => {
+            try {
+                await this.loadFiles();
+                if (this.files.length > 0) {
+                    this.hideWaiting();
+                    if (this.config.autoStart) {
+                        this.startSlideshow();
+                    }
+                } else {
+                    this.waitAndRetry(); // Keep trying
+                }
+            } catch (error) {
+                console.error('Error rechecking files:', error);
+                this.waitAndRetry(); // Keep trying even on error
+            }
+        }, 5000);
     }
 
     async loadConfig() {
@@ -74,6 +96,22 @@ class Slideshow {
         error.className = 'error';
         error.innerHTML = `<div>Error: ${message}</div><div style="margin-top: 10px; font-size: 14px;">Check the console for more details</div>`;
         document.body.appendChild(error);
+    }
+
+    showWaiting(message) {
+        this.hideLoading();
+        this.hideWaiting(); // Remove any existing waiting message
+        const waiting = document.createElement('div');
+        waiting.className = 'waiting';
+        waiting.textContent = message;
+        document.body.appendChild(waiting);
+    }
+
+    hideWaiting() {
+        const waiting = document.querySelector('.waiting');
+        if (waiting) {
+            waiting.remove();
+        }
     }
 
     startSlideshow() {
