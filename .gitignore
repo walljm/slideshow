@@ -1,0 +1,7 @@
+dotnet/bin/
+dotnet/obj/project.nuget.cache
+dotnet/obj/
+dotnet/.vs/
+maui/.vs/
+maui/bin/
+maui/obj/

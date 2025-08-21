@@ -5,14 +5,11 @@ namespace SlideshowWebServer;
 
 public sealed class MediaService
 {
-    private static readonly string[] SupportedImageExtensions =
-        [ "jpg", "jpeg", "png", "gif", "webp", "bmp", "svg" ];
+    private static readonly string[] SupportedImageExtensions = ["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"];
 
-    private static readonly string[] SupportedVideoExtensions =
-        [ "mp4", "webm", "ogg", "avi", "mov" ];
+    private static readonly string[] SupportedVideoExtensions = ["mp4", "webm", "ogg", "avi", "mov"];
 
-    private static readonly string[] AllSupportedExtensions =
-        SupportedImageExtensions.Concat(SupportedVideoExtensions).ToArray();
+    private static readonly string[] AllSupportedExtensions = SupportedImageExtensions.Concat(SupportedVideoExtensions).ToArray();
 
     private readonly ILogger<MediaService> logger;
     public SlideshowConfig Config { get; private set; }
@@ -92,7 +89,7 @@ public sealed class MediaService
             }
 
             // Sort files by name
-            files = files.OrderBy(static f => f.Name).ToList();
+            files = [.. files.OrderBy(static f => f.Name)];
             logger.LogInformation("Found {FileCount} media files in {FolderPath}", files.Count, this.Config.FolderPath);
         }
         catch (Exception error)
@@ -103,7 +100,7 @@ public sealed class MediaService
         return files;
     }
 
-    public  Task<(Stream? stream, string contentType)> GetMediaFileStreamAsync(string fileName)
+    public Task<(Stream? stream, string contentType)> GetMediaFileStreamAsync(string fileName)
     {
         try
         {
