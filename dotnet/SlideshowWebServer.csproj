@@ -7,6 +7,7 @@
     <UseAppHost>true</UseAppHost>
     <PublishTrimmed>true</PublishTrimmed>
     <PreserveCompilationContext>true</PreserveCompilationContext>
+    <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
 
   <ItemGroup>

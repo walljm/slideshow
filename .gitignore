@@ -6,3 +6,4 @@ maui/.vs/
 maui/bin/
 maui/obj/
 publish/
+dist/
