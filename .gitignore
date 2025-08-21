@@ -5,3 +5,4 @@ dotnet/.vs/
 maui/.vs/
 maui/bin/
 maui/obj/
+publish/
