@@ -13,16 +13,36 @@
   <PropertyGroup>
     <UseAppHost>true</UseAppHost>
     <PublishTrimmed>true</PublishTrimmed>
-    <PreserveCompilationContext>true</PreserveCompilationContext>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <PreserveCompilationContext>false</PreserveCompilationContext>
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
     <UseRuntimeStore>false</UseRuntimeStore>
+    <Optimize>true</Optimize>
   </PropertyGroup>
  
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <Optimize>False</Optimize>
   </PropertyGroup>
 
+  <!-- Strip symbols & debug info only when publishing -->
+  <PropertyGroup Condition="'$(PublishDir)' != ''">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <StripSymbols>true</StripSymbols>
+
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <IncludeAllContentForSelfExtract>false</IncludeAllContentForSelfExtract>
+
+    <!-- Disable unused runtime subsystems -->
+    <DebuggerSupport>false</DebuggerSupport>
+    <MetadataUpdaterSupport>false</MetadataUpdaterSupport>
+    <EnableUnsafeBinaryFormatterSerialization>false</EnableUnsafeBinaryFormatterSerialization>
+    <EventSourceSupport>false</EventSourceSupport>
+    <HttpActivityPropagationSupport>false</HttpActivityPropagationSupport>
+
+    <!-- Restrict cultures (already invariant, but keeps satellite pruning explicit) -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
@@ -57,11 +77,19 @@
     <TrimmerRootDescriptor Include="ILLink.Descriptors.xml" />
   </ItemGroup>
 
+
+  <!-- (Optional) Ensure no PDBs remain in publish output -->
+  <Target Name="RemovePdbAfterPublish" AfterTargets="Publish">
+    <ItemGroup>
+      <_PublishedPdb Include="$(PublishDir)**\*.pdb" />
+    </ItemGroup>
+    <Delete Files="@(_PublishedPdb)" />
+  </Target>
+
   <!-- Remove aspnetcorev2_inprocess.dll after publish -->
   <Target Name="RemoveAspNetCoreV2Dll" AfterTargets="Publish">
-    <Message Text="Removing aspnetcorev2_inprocess.dll from publish output..." Importance="high" />
+    <Message Text="Removing unused files from publish output..." Importance="high" />
     <Delete Files="$(PublishDir)aspnetcorev2_inprocess.dll" ContinueOnError="true" />
-    <Message Text="aspnetcorev2_inprocess.dll removal completed" Importance="high" />
   </Target>
 
 </Project>

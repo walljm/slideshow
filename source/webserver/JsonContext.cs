@@ -6,6 +6,7 @@ namespace SlideshowWebServer;
 
 [JsonSerializable(typeof(SlideshowConfig))]
 [JsonSerializable(typeof(List<MediaFile>))]
+[JsonSerializable(typeof(string))]
 public partial class JsonContext : JsonSerializerContext
 {
 }
