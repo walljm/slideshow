@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 
@@ -11,37 +12,28 @@ public static class EndpointExtensions
     {
         // API endpoints
         var api = app.MapGroup("/api");
-        api.MapGet(
-            "config",
-            static (MediaService mediaService) =>
-                Results.Json(mediaService.Config, JsonSettings.SerializerOptions)
-        );
-        api.MapGet(
-            "files",
-            static (MediaService mediaService) =>
-                Results.Json(mediaService.GetMediaFiles(), JsonSettings.SerializerOptions)
-        );
+        api.MapGet("config", static (MediaService mediaService) => Results.Json(mediaService.Config));
+        api.MapGet("files", static (MediaService mediaService) => Results.Json(mediaService.GetMediaFiles()));
 
         // Media file serving
-        app.MapGet(
-            "/media/{fileName}",
-            static async (string fileName, MediaService mediaService) =>
-            {
-                var (stream, contentType) = await mediaService.GetMediaFileStreamAsync(fileName);
-                return stream == null
-                    ? Results.Problem(
-                        detail: "File not found",
-                        statusCode: 404,
-                        title: "Not Found")
-                    : Results.Stream(stream, contentType, fileName, DateTimeOffset.UtcNow, enableRangeProcessing: true);
-            }
-        );
+        app.MapGet("/media/{fileName}", GetMediaFiles);
 
         // Static file serving from embedded resources
         app.MapGet("/{*path}", DefaultHandler);
     }
 
-    private static async Task<IResult> DefaultHandler(
+    private static async Task<Results<FileStreamHttpResult, NotFound<string>>> GetMediaFiles(
+        [FromServices] MediaService mediaService,
+        [FromRoute] string fileName
+    )
+    {
+        var (stream, contentType) = await mediaService.GetMediaFileStreamAsync(fileName);
+        return stream is null
+            ? TypedResults.NotFound("File not found")
+            : TypedResults.Stream(stream, contentType, fileName, DateTimeOffset.UtcNow, enableRangeProcessing: true);
+    }
+
+    private static async Task<Results<FileContentHttpResult, NotFound<string>>> DefaultHandler(
         [FromServices] EmbeddedFileProvider fileProvider,
         [FromRoute] string? path
     )
@@ -55,14 +47,11 @@ public static class EndpointExtensions
         try
         {
             var (content, contentType) = await fileProvider.GetFileAsync(path);
-            return Results.Bytes(content, contentType);
+            return TypedResults.Bytes(content, contentType);
         }
         catch (FileNotFoundException)
         {
-            return Results.Problem(
-                detail: $"File '{path}' not found",
-                statusCode: 404,
-                title: "Not Found");
+            return TypedResults.NotFound($"File '{path}' not found");
         }
     }
 }

@@ -1,11 +1,22 @@
-using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SlideshowWebServer;
+using System.Runtime.InteropServices;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure System.Text.Json for polymorphism
+builder.Services.Configure<JsonOptions>(options =>
+{
+    options.SerializerOptions.AllowTrailingCommas = true;
+    options.SerializerOptions.PropertyNameCaseInsensitive = false;
+    options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    options.SerializerOptions.TypeInfoResolver = JsonContext.Default;
+});
 
 // Add services
 builder.Services.AddSingleton<MediaService>();
