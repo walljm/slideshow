@@ -12,6 +12,8 @@
     <GenerateWebConfigFile>false</GenerateWebConfigFile>
     <GenerateStaticWebAssetsManifest>false</GenerateStaticWebAssetsManifest>
     <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>
