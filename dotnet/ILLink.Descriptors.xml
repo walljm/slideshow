@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<linker>
+  <!-- Suppress System.Data trimming warnings since we don't use DataSet/DataTable -->
+  <assembly fullname="System.Data.Common">
+    <type fullname="System.Data.DataSet">
+      <method signature="System.Xml.Schema.XmlSchema System.Xml.Serialization.IXmlSerializable.GetSchema()" />
+      <method signature="System.Void System.Xml.Serialization.IXmlSerializable.ReadXml(System.Xml.XmlReader)" />
+      <method signature="System.Void System.Xml.Serialization.IXmlSerializable.WriteXml(System.Xml.XmlWriter)" />
+    </type>
+    <type fullname="System.Data.DataTable">
+      <method signature="System.Xml.Schema.XmlSchema System.Xml.Serialization.IXmlSerializable.GetSchema()" />
+      <method signature="System.Void System.Xml.Serialization.IXmlSerializable.ReadXml(System.Xml.XmlReader)" />
+      <method signature="System.Void System.Xml.Serialization.IXmlSerializable.WriteXml(System.Xml.XmlWriter)" />
+    </type>
+  </assembly>
+</linker>
+

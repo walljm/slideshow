@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json;
 using SlideshowWebServer.Models;
 
 namespace SlideshowWebServer;
@@ -36,7 +36,7 @@ public sealed class MediaService
                 if (File.Exists(configPath))
                 {
                     var configData = File.ReadAllText(configPath);
-                    var config = JsonConvert.DeserializeObject<SlideshowConfig>(configData);
+                    var config = JsonSerializer.Deserialize(configData, JsonContext.Default.SlideshowConfig);
                     if (config != null)
                     {
                         logger.LogInformation("Configuration loaded from: {ConfigPath}", configPath);
