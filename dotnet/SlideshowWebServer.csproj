@@ -9,6 +9,9 @@
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <InvariantGlobalization>true</InvariantGlobalization>
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
+    <GenerateWebConfigFile>false</GenerateWebConfigFile>
+    <GenerateStaticWebAssetsManifest>false</GenerateStaticWebAssetsManifest>
+    <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,6 +34,13 @@
 
   <ItemGroup>
     <TrimmerRootDescriptor Include="ILLink.Descriptors.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="publish-test\config.json" />
+    <_ContentIncludedByDefault Remove="publish-test\SlideshowWebServer.deps.json" />
+    <_ContentIncludedByDefault Remove="publish-test\SlideshowWebServer.runtimeconfig.json" />
+    <_ContentIncludedByDefault Remove="publish-test\SlideshowWebServer.staticwebassets.endpoints.json" />
   </ItemGroup>
 
 </Project>
