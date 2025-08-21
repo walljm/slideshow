@@ -20,7 +20,7 @@ public sealed class MediaService
     ];
 
     private readonly ILogger<MediaService> logger;
-    public SlideshowConfig Config { get; private set; }
+    public SlideshowConfig Config { get;  }
 
     public MediaService(ILogger<MediaService> logger)
     {
@@ -30,31 +30,24 @@ public sealed class MediaService
 
     private SlideshowConfig LoadConfiguration()
     {
-        try
+        foreach (var configPath in PossibleConfigPaths)
         {
-            foreach (var configPath in PossibleConfigPaths)
+            if (File.Exists(configPath))
             {
-                if (File.Exists(configPath))
+                var configData = File.ReadAllText(configPath);
+                var config = JsonSerializer.Deserialize<SlideshowConfig>(configData, JsonSettings.SerializerOptions);
+                if (config != null)
                 {
-                    var configData = File.ReadAllText(configPath);
-                    var config = JsonSerializer.Deserialize<SlideshowConfig>(configData, JsonSettings.SerializerOptions);
-                    if (config != null)
-                    {
-                        logger.LogInformation("Configuration loaded from: {ConfigPath}", configPath);
-                        logger.LogInformation("Configuration: {@Config}", config);
-                        return config;
-                    }
+                    logger.LogInformation("Configuration loaded from: {ConfigPath}", configPath);
+                    logger.LogInformation("Configuration contents: {@Config}", config);
+                    return config;
                 }
             }
+        }
 
-            logger.LogWarning("No config.json found, using default configuration");
-            return new SlideshowConfig();
-        }
-        catch (Exception error)
-        {
-            logger.LogError(error, "Error loading config.json, using default configuration");
-            return new SlideshowConfig();
-        }
+
+        logger.LogError("Error loading config.json. config.json must be in either: {Join}", string.Join(", ", PossibleConfigPaths));
+        throw new Exception($"Error loading config.json. config.json must be in either: {string.Join(", ", PossibleConfigPaths)}");
     }
 
     public List<MediaFile> GetMediaFiles()
@@ -95,7 +88,7 @@ public sealed class MediaService
         }
         catch (Exception error)
         {
-            logger.LogError(error, "Error reading media folder: {FolderPath}", this.Config.FolderPath);
+            logger.LogError(error, "Error reading media from folder: {FolderPath}", this.Config.FolderPath);
         }
 
         return files;
