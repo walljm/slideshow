@@ -37,7 +37,7 @@ public sealed class MediaService
                 if (File.Exists(configPath))
                 {
                     var configData = File.ReadAllText(configPath);
-                    var config = JsonSerializer.Deserialize(configData, JsonContext.Default.SlideshowConfig);
+                    var config = JsonSerializer.Deserialize<SlideshowConfig>(configData, JsonSettings.SerializerOptions);
                     if (config != null)
                     {
                         logger.LogInformation("Configuration loaded from: {ConfigPath}", configPath);

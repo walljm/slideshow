@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 
 namespace SlideshowWebServer;
@@ -14,12 +14,12 @@ public static class EndpointExtensions
         api.MapGet(
             "config",
             static (MediaService mediaService) =>
-                Results.Json(mediaService.Config, JsonContext.Default.SlideshowConfig)
+                Results.Json(mediaService.Config, JsonSettings.SerializerOptions)
         );
         api.MapGet(
             "files",
             static (MediaService mediaService) =>
-                Results.Json(mediaService.GetMediaFiles(), JsonContext.Default.ListMediaFile)
+                Results.Json(mediaService.GetMediaFiles(), JsonSettings.SerializerOptions)
         );
 
         // Media file serving

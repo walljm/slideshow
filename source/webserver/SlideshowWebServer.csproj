@@ -17,8 +17,6 @@
     <InvariantGlobalization>true</InvariantGlobalization>
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
     <UseRuntimeStore>false</UseRuntimeStore>
-    <DebugType>none</DebugType>
-    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
  
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
