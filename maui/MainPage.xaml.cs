@@ -11,6 +11,13 @@ public sealed partial class MainPage
 {
     private readonly SlideshowService slideshowService;
 
+    private readonly JsonSerializerOptions jsonSerializerOptions = new()
+    {
+        AllowTrailingCommas = true,
+        PropertyNameCaseInsensitive = false,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
+
     public MainPage()
     {
         slideshowService = new SlideshowService();
@@ -49,7 +56,7 @@ public sealed partial class MainPage
     }
 
 
-    private void OnWebViewLoaded(object? sender, EventArgs e)
+    private static void OnWebViewLoaded(object? sender, EventArgs e)
     {
         try
         {
@@ -61,7 +68,7 @@ public sealed partial class MainPage
         }
     }
 
-    private void EnableWebViewDebugging()
+    private static void EnableWebViewDebugging()
     {
         try
         {
@@ -104,7 +111,7 @@ public sealed partial class MainPage
         }
     }
 
-    private async Task<string> LoadHtmlContent()
+    private static async Task<string> LoadHtmlContent()
     {
         try
         {
@@ -144,7 +151,7 @@ public sealed partial class MainPage
         }
     }
 
-    private string GetFallbackHtml()
+    private static string GetFallbackHtml()
     {
         return @"
 <!DOCTYPE html>
@@ -206,12 +213,12 @@ public sealed partial class MainPage
         }
     }
 
-    private void OnWebViewNavigated(object? sender, WebNavigatedEventArgs e)
+    private static void OnWebViewNavigated(object? sender, WebNavigatedEventArgs e)
     {
         Debug.WriteLine($"WebView navigated to: {e.Url}");
     }
 
-    private string ExtractApiPath(string url)
+    private static string ExtractApiPath(string url)
     {
         try
         {
@@ -221,23 +228,27 @@ public sealed partial class MainPage
                 return "/api/config";
             }
 
-            if (url.Contains("/api/files"))
+            if (url.Contains("/api/filenames"))
             {
-                return "/api/files";
+                return "/api/filenames";
+            }
+
+            if (url.Contains("/api/fileinfo"))
+            {
+                // Extract the entire URL with query parameters for fileinfo
+                var apiIndex = url.IndexOf("/api/fileinfo", StringComparison.Ordinal);
+                if (apiIndex >= 0)
+                {
+                    return url.Substring(apiIndex);
+                }
             }
 
             // Generic extraction for other API paths
-            var apiIndex = url.IndexOf("/api/", StringComparison.Ordinal);
-            if (apiIndex >= 0)
+            var genericApiIndex = url.IndexOf("/api/", StringComparison.Ordinal);
+            if (genericApiIndex >= 0)
             {
-                var apiPath = url.Substring(apiIndex);
-                // Remove any query parameters or fragments
-                var queryIndex = apiPath.IndexOf('?');
-                if (queryIndex >= 0)
-                {
-                    apiPath = apiPath.Substring(0, queryIndex);
-                }
-
+                var apiPath = url.Substring(genericApiIndex);
+                // Remove any fragments but keep query parameters
                 var fragmentIndex = apiPath.IndexOf('#');
                 if (fragmentIndex >= 0)
                 {
@@ -267,29 +278,68 @@ public sealed partial class MainPage
 
             if (url == "/api/config")
             {
-                Debug.WriteLine("Processing /api/config request");
-                var config = slideshowService.Config;
                 jsonResponse = JsonSerializer.Serialize(
-                    config,
-                    new JsonSerializerOptions
-                    {
-                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    }
+                    slideshowService.Config,
+                    jsonSerializerOptions
                 );
-                Debug.WriteLine($"Config response: {jsonResponse}");
             }
-            else if (url == "/api/files")
+            else if (url == "/api/filenames")
             {
-                Debug.WriteLine("Processing /api/files request");
-                var files = await slideshowService.GetMediaFilesAsync();
+                var fileNames = slideshowService.GetMediaFileNames();
                 jsonResponse = JsonSerializer.Serialize(
-                    files,
-                    new JsonSerializerOptions
-                    {
-                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    }
+                    fileNames,
+                    jsonSerializerOptions
                 );
-                Debug.WriteLine($"Files response: {jsonResponse.Substring(0, Math.Min(200, jsonResponse.Length))}...");
+            }
+            else if (url.StartsWith("/api/fileinfo", StringComparison.Ordinal))
+            {
+                var uri = new Uri("http://dummy" + url); // Add dummy scheme for Uri parsing
+                var query = uri.Query;
+                string? fileName = null;
+
+                if (!string.IsNullOrEmpty(query))
+                {
+                    // Parse query string manually
+                    var queryParts = query.TrimStart('?').Split('&');
+                    foreach (var part in queryParts)
+                    {
+                        var keyValue = part.Split('=');
+                        if (keyValue.Length == 2 && keyValue[0] == "name")
+                        {
+                            fileName = Uri.UnescapeDataString(keyValue[1]);
+                            break;
+                        }
+                    }
+                }
+
+                if (string.IsNullOrEmpty(fileName))
+                {
+                    Debug.WriteLine("Missing filename parameter");
+                    jsonResponse = JsonSerializer.Serialize(
+                        new { error = "Missing filename parameter" },
+                        jsonSerializerOptions
+                    );
+                }
+                else
+                {
+                    var fileInfo = await slideshowService.GetMediaFileAsync(fileName);
+                    if (fileInfo == null)
+                    {
+                        Debug.WriteLine($"File not found: {fileName}");
+                        jsonResponse = JsonSerializer.Serialize(
+                            new { error = "File not found" },
+                            jsonSerializerOptions
+                        );
+                    }
+                    else
+                    {
+                        jsonResponse = JsonSerializer.Serialize(
+                            fileInfo,
+                            jsonSerializerOptions
+                        );
+                        Debug.WriteLine($"File info response for {fileName}: {jsonResponse.Substring(0, Math.Min(100, jsonResponse.Length))}...");
+                    }
+                }
             }
             else
             {
@@ -299,13 +349,7 @@ public sealed partial class MainPage
 
             // Inject the response into JavaScript
             var script = $"window.handleApiResponse('{url}', {jsonResponse});";
-
-            Debug.WriteLine($"Executing JavaScript: {script.Substring(0, Math.Min(150, script.Length))}...");
-
-            // Execute the script in the WebView
             await SlideshowWebView.EvaluateJavaScriptAsync(script);
-
-            Debug.WriteLine("JavaScript execution completed");
         }
         catch (Exception ex)
         {

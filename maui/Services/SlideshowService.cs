@@ -54,9 +54,9 @@ public sealed class SlideshowService
         return this.Config;
     }
 
-    public async Task<List<MediaFile>> GetMediaFilesAsync()
+    public List<string> GetMediaFileNames()
     {
-        var files = new List<MediaFile>();
+        var fileNames = new List<string>();
 
         try
         {
@@ -64,13 +64,13 @@ public sealed class SlideshowService
             if (string.IsNullOrEmpty(this.Config.FolderPath))
             {
                 Debug.WriteLine("Config not loaded or folder path empty");
-                return files;
+                return fileNames;
             }
 
             if (!Directory.Exists(this.Config.FolderPath))
             {
                 Debug.WriteLine($"Directory does not exist: {this.Config.FolderPath}");
-                return files;
+                return fileNames;
             }
 
             var directoryInfo = new DirectoryInfo(this.Config.FolderPath);
@@ -78,31 +78,75 @@ public sealed class SlideshowService
                .Where(f => supportedExtensions.Contains(f.Extension.ToLowerInvariant()))
                .OrderBy(static f => f.Name);
 
-            foreach (var fileInfo in fileInfos)
-            {
-                var extension = fileInfo.Extension.ToLowerInvariant();
-                var mediaType = supportedVideoExtensions.Contains(extension) ? "video" : "image";
-
-                // Convert file to base64 for embedding in HTML
-                var base64Data = await ConvertFileToBase64Async(fileInfo.FullName);
-                var mimeType = GetMimeType(extension);
-
-                files.Add(
-                    new MediaFile
-                    {
-                        Name = fileInfo.Name,
-                        Path = $"data:{mimeType};base64,{base64Data}",
-                        Type = mediaType,
-                    }
-                );
-            }
+            fileNames.AddRange(fileInfos.Select(f => f.Name));
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Error loading media files: {ex.Message}");
+            Debug.WriteLine($"Error loading media file names: {ex.Message}");
         }
 
-        return files;
+        return fileNames;
+    }
+
+    public async Task<MediaFile?> GetMediaFileAsync(string fileName)
+    {
+        try
+        {
+            // Ensure config is loaded
+            if (string.IsNullOrEmpty(this.Config.FolderPath))
+            {
+                Debug.WriteLine("Config not loaded or folder path empty");
+                return null;
+            }
+
+            if (!Directory.Exists(this.Config.FolderPath))
+            {
+                Debug.WriteLine($"Directory does not exist: {this.Config.FolderPath}");
+                return null;
+            }
+
+            var filePath = Path.Combine(this.Config.FolderPath, fileName);
+            if (!File.Exists(filePath))
+            {
+                Debug.WriteLine($"File does not exist: {filePath}");
+                return null;
+            }
+
+            // Security check: ensure the file is within the configured folder
+            var resolvedPath = Path.GetFullPath(filePath);
+            var resolvedFolder = Path.GetFullPath(this.Config.FolderPath);
+            
+            if (!resolvedPath.StartsWith(resolvedFolder, StringComparison.OrdinalIgnoreCase))
+            {
+                Debug.WriteLine($"Access denied - file outside configured folder: {fileName}");
+                return null;
+            }
+
+            var extension = Path.GetExtension(fileName).ToLowerInvariant();
+            if (!supportedExtensions.Contains(extension))
+            {
+                Debug.WriteLine($"Unsupported file extension: {extension}");
+                return null;
+            }
+
+            var mediaType = supportedVideoExtensions.Contains(extension) ? "video" : "image";
+
+            // Convert file to base64 for embedding in HTML
+            var base64Data = await ConvertFileToBase64Async(filePath);
+            var mimeType = GetMimeType(extension);
+
+            return new MediaFile
+            {
+                Name = fileName,
+                Path = $"data:{mimeType};base64,{base64Data}",
+                Type = mediaType,
+            };
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error loading media file {fileName}: {ex.Message}");
+            return null;
+        }
     }
 
     private async Task<string> ConvertFileToBase64Async(string filePath)

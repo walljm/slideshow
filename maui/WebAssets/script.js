@@ -1,6 +1,6 @@
 class Slideshow {
   constructor() {
-    this.files = [];
+    this.fileNames = [];
     this.currentIndex = 0;
     this.timer = null;
     this.currentContainer = 0;
@@ -21,9 +21,9 @@ class Slideshow {
       this.log('Initializing files...');
       await this.loadFiles();
 
-      if (this.files.length > 0) {
+      if (this.fileNames.length > 0) {
         this.startSlideshow(); // Always auto-start when files are loaded
-      } else if (this.files.length === 0) {
+      } else if (this.fileNames.length === 0) {
         this.waitAndRetry();
       }
     } catch (error) {
@@ -37,7 +37,7 @@ class Slideshow {
     setTimeout(async () => {
       try {
         await this.loadFiles();
-        if (this.files.length > 0) {
+        if (this.fileNames.length > 0) {
           this.hideWaiting();
           this.startSlideshow(); // Always auto-start when files are found
         } else {
@@ -59,10 +59,20 @@ class Slideshow {
   }
 
   async loadFiles() {
-    this.triggerApiCall('/api/files');
+    this.triggerApiCall('/api/filenames');
 
     return new Promise((resolve) => {
       this._filesResolve = resolve;
+    });
+  }
+
+  async loadFileInfo(fileName) {
+    // Always load from API without caching
+    this.triggerApiCall(`/api/fileinfo?name=${encodeURIComponent(fileName)}`);
+
+    return new Promise((resolve, reject) => {
+      this._fileInfoResolve = resolve;
+      this._fileInfoReject = reject;
     });
   }
 
@@ -106,12 +116,27 @@ class Slideshow {
           this._configResolve();
           this._configResolve = null;
         }
-      } else if (endpoint === '/api/files') {
-        this.files = parsedData;
-        this.log(`Loaded ${this.files.length} files:`, this.files);
+      } else if (endpoint === '/api/filenames') {
+        this.fileNames = parsedData;
+        this.log(`Loaded ${this.fileNames.length} file names:`, this.fileNames);
         if (this._filesResolve) {
           this._filesResolve();
           this._filesResolve = null;
+        }
+      } else if (endpoint.startsWith('/api/fileinfo')) {
+        if (parsedData.error) {
+          this.log(`Error loading file info: ${parsedData.error}`);
+          if (this._fileInfoReject) {
+            this._fileInfoReject(new Error(parsedData.error));
+            this._fileInfoReject = null;
+          }
+        } else {
+          // Don't cache, just resolve with the file info
+          this.log(`Loaded file info for: ${parsedData.name}`);
+          if (this._fileInfoResolve) {
+            this._fileInfoResolve(parsedData);
+            this._fileInfoResolve = null;
+          }
         }
       }
     } catch (error) {
@@ -139,7 +164,7 @@ class Slideshow {
   }
 
   startSlideshow() {
-    if (this.files.length === 0) return;
+    if (this.fileNames.length === 0) return;
 
     this.isPlaying = true;
     this.currentIndex = 0;
@@ -154,70 +179,79 @@ class Slideshow {
     }
   }
 
-  showCurrentSlide() {
-    if (this.files.length === 0 || !this.isPlaying) return;
+  async showCurrentSlide() {
+    if (this.fileNames.length === 0 || !this.isPlaying) return;
 
-    const currentFile = this.files[this.currentIndex];
-    const nextContainer = this.currentContainer === 0 ? 1 : 0;
-    const containerElement = document.getElementById(`mediaContainer${nextContainer + 1}`);
+    const currentFileName = this.fileNames[this.currentIndex];
+    
+    try {
+      // Load file info on demand
+      const currentFile = await this.loadFileInfo(currentFileName);
+      
+      const nextContainer = this.currentContainer === 0 ? 1 : 0;
+      const containerElement = document.getElementById(`mediaContainer${nextContainer + 1}`);
 
-    containerElement.innerHTML = '';
+      containerElement.innerHTML = '';
 
-    this.log(`Showing: ${currentFile.name} (${currentFile.type})`);
+      this.log(`Showing: ${currentFile.name} (${currentFile.type})`);
 
-    let mediaElement;
+      let mediaElement;
 
-    if (currentFile.type === 'video') {
-      mediaElement = document.createElement('video');
-      mediaElement.src = currentFile.path;
-      mediaElement.autoplay = true;
-      mediaElement.muted = false;
-      mediaElement.controls = false;
-      mediaElement.style.maxWidth = '100%';
-      mediaElement.style.maxHeight = '100%';
+      if (currentFile.type === 'video') {
+        mediaElement = document.createElement('video');
+        mediaElement.src = currentFile.path;
+        mediaElement.autoplay = true;
+        mediaElement.muted = false;
+        mediaElement.controls = false;
+        mediaElement.style.maxWidth = '100%';
+        mediaElement.style.maxHeight = '100%';
 
-      mediaElement.addEventListener('loadedmetadata', () => {
-        this.switchToContainer(nextContainer);
-        this.scheduleNext(mediaElement.duration * 1000);
-      });
+        mediaElement.addEventListener('loadedmetadata', () => {
+          this.switchToContainer(nextContainer);
+          this.scheduleNext(mediaElement.duration * 1000);
+        });
 
-      mediaElement.addEventListener('ended', () => {
-        this.nextSlide();
-      });
+        mediaElement.addEventListener('ended', () => {
+          this.nextSlide();
+        });
 
-      mediaElement.addEventListener('error', (e) => {
-        console.error('Video error:', e);
-        this.nextSlide();
-      });
-    } else {
-      mediaElement = document.createElement('img');
-      mediaElement.src = currentFile.path;
-      mediaElement.style.maxWidth = '100%';
-      mediaElement.style.maxHeight = '100%';
+        mediaElement.addEventListener('error', (e) => {
+          console.error('Video error:', e);
+          this.nextSlide();
+        });
+      } else {
+        mediaElement = document.createElement('img');
+        mediaElement.src = currentFile.path;
+        mediaElement.style.maxWidth = '100%';
+        mediaElement.style.maxHeight = '100%';
 
-      if (this.config && this.config.zoomOnImage) {
-        const animationDuration = `${this.config.imageDuration}s`;
-        mediaElement.style.setProperty('--zoom-duration', animationDuration);
+        if (this.config && this.config.zoomOnImage) {
+          const animationDuration = `${this.config.imageDuration}s`;
+          mediaElement.style.setProperty('--zoom-duration', animationDuration);
 
-        if (this.currentIndex % 2 === 0) {
-          mediaElement.classList.add('zoom-in');
-        } else {
-          mediaElement.classList.add('zoom-out');
+          if (this.currentIndex % 2 === 0) {
+            mediaElement.classList.add('zoom-in');
+          } else {
+            mediaElement.classList.add('zoom-out');
+          }
         }
+
+        mediaElement.addEventListener('load', () => {
+          this.switchToContainer(nextContainer);
+          this.scheduleNext(this.config.imageDuration * 1000);
+        });
+
+        mediaElement.addEventListener('error', (e) => {
+          console.error('Image error:', e);
+          this.nextSlide();
+        });
       }
 
-      mediaElement.addEventListener('load', () => {
-        this.switchToContainer(nextContainer);
-        this.scheduleNext(this.config.imageDuration * 1000);
-      });
-
-      mediaElement.addEventListener('error', (e) => {
-        console.error('Image error:', e);
-        this.nextSlide();
-      });
+      containerElement.appendChild(mediaElement);
+    } catch (error) {
+      console.error('Error loading file info:', error);
+      this.nextSlide(); // Skip to next slide on error
     }
-
-    containerElement.appendChild(mediaElement);
   }
 
   switchToContainer(containerIndex) {
@@ -248,14 +282,14 @@ class Slideshow {
   nextSlide() {
     if (!this.isPlaying) return;
 
-    this.currentIndex = (this.currentIndex + 1) % this.files.length;
+    this.currentIndex = (this.currentIndex + 1) % this.fileNames.length;
     this.showCurrentSlide();
   }
 
   previousSlide() {
     if (!this.isPlaying) return;
 
-    this.currentIndex = (this.currentIndex - 1 + this.files.length) % this.files.length;
+    this.currentIndex = (this.currentIndex - 1 + this.fileNames.length) % this.fileNames.length;
     this.showCurrentSlide();
   }
 }
