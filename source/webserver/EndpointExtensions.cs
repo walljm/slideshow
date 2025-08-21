@@ -29,7 +29,10 @@ public static class EndpointExtensions
             {
                 var (stream, contentType) = await mediaService.GetMediaFileStreamAsync(fileName);
                 return stream == null
-                    ? Results.NotFound("File not found")
+                    ? Results.Problem(
+                        detail: "File not found",
+                        statusCode: 404,
+                        title: "Not Found")
                     : Results.Stream(stream, contentType, fileName, DateTimeOffset.UtcNow, enableRangeProcessing: true);
             }
         );
@@ -56,7 +59,10 @@ public static class EndpointExtensions
         }
         catch (FileNotFoundException)
         {
-            return Results.NotFound($"File '{path}' not found");
+            return Results.Problem(
+                detail: $"File '{path}' not found",
+                statusCode: 404,
+                title: "Not Found");
         }
     }
 }

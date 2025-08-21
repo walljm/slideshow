@@ -13,7 +13,7 @@ public partial class JsonContext : JsonSerializerContext
 
 public static class JsonSettings
 {
-    public static readonly JsonSerializerOptions SerializerOptions = new JsonSerializerOptions
+    public static readonly JsonSerializerOptions SerializerOptions = new()
     {
       AllowTrailingCommas = true,
       PropertyNameCaseInsensitive = false,
