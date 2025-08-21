@@ -11,7 +11,7 @@ public sealed class EmbeddedFileProvider
     public EmbeddedFileProvider()
     {
         assembly = Assembly.GetExecutingAssembly();
-        baseNamespace = "SlideshowWebServer.wwwroot";
+        baseNamespace = "SlideshowWebServer.web";
     }
 
     public async Task<(byte[] content, string contentType)> GetFileAsync(string path)

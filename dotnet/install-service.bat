@@ -21,7 +21,7 @@ eventcreate /ID 1 /L APPLICATION /T INFORMATION /SO SlideshowService /D "Created
 eventcreate /ID 1 /L APPLICATION /T INFORMATION /SO SlideshowWebServer /D "Created the application event source."
 
 sc create SlideshowService ^
-  binpath= "%~SlideshowWebServer.exe" ^
+  binpath= "SlideshowWebServer.exe" ^
   displayName= "Slideshow Web Server" ^
   start= "auto" ^
   obj= "NT AUTHORITY\NetworkService"
