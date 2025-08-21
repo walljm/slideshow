@@ -57,4 +57,11 @@
     <TrimmerRootDescriptor Include="ILLink.Descriptors.xml" />
   </ItemGroup>
 
+  <!-- Remove aspnetcorev2_inprocess.dll after publish -->
+  <Target Name="RemoveAspNetCoreV2Dll" AfterTargets="Publish">
+    <Message Text="Removing aspnetcorev2_inprocess.dll from publish output..." Importance="high" />
+    <Delete Files="$(PublishDir)aspnetcorev2_inprocess.dll" ContinueOnError="true" />
+    <Message Text="aspnetcorev2_inprocess.dll removal completed" Importance="high" />
+  </Target>
+
 </Project>
