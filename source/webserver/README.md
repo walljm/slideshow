@@ -4,44 +4,38 @@ A .NET/C# implementation of the slideshow web application that can be run as a s
 
 ## Features
 
-- **Kestrel Web Server**: High-performance HTTP server listening on port 5000
+- **Kestrel Web Server**: High-performance HTTP server listening on port 5500
 - **Embedded Static Files**: HTML, CSS, and JavaScript files are bundled into the executable
 - **Media File Support**: Supports images (JPG, PNG, GIF, WebP, BMP, SVG) and videos (MP4, WebM, OGG, AVI, MOV)
 - **Configuration**: JSON-based configuration for slideshow behavior
 - **Windows Service**: Can be installed and run as a Windows service
 - **Security**: Path traversal protection for media file access
 - **Logging**: Comprehensive logging with Event Log support when running as a service
+- **Single File Deployment**: Self-contained executable with all dependencies
 
-## Projects
+## Architecture
 
-### SlideshowWebServer
-The main web server application that:
-- Serves the slideshow web interface
+The application consists of a single .NET project (`SlideshowWebServer`) that:
+- Serves the slideshow web interface from embedded resources
 - Provides API endpoints for configuration and media files
 - Streams media files with proper MIME types
-- Supports CORS for development
-
-### SlideshowService
-A service management utility that can:
-- Install the web server as a Windows service
-- Uninstall the service
-- Start/stop the service
-- Check service status
+- Supports both standalone and Windows service execution modes
+- Uses the `MediaService` for file operations and `EmbeddedFileProvider` for static content
 
 ## Quick Start
 
-### 1. Build the Projects
+### 1. Build the Project
 
 Run the build script:
 ```batch
 build.bat
 ```
 
-This will create a `publish` folder with the compiled executables.
+This will create a `dist` folder with the self-contained executable (`SlideshowWebServer.exe`).
 
 ### 2. Configure the Application
 
-Copy `config.json` to the `publish` folder and edit it:
+Copy `config.json` to the `dist` folder and edit it:
 
 ```json
 {
@@ -62,41 +56,114 @@ Copy `config.json` to the `publish` folder and edit it:
 
 ### 3. Run as Standalone Application
 
-Navigate to the `publish` folder and run:
+Navigate to the `dist` folder and run:
 ```batch
 SlideshowWebServer.exe
 ```
 
-The server will start on http://localhost:5000/
+The server will start on http://localhost:5500/
 
 ### 4. Install as Windows Service
 
 **Important: Run as Administrator**
 
-Navigate to the `publish` folder and run:
-```batch
-install-and-start.bat
-```
-
-Or install and start manually:
+Navigate to the `dist` folder and run:
 ```batch
 install-service.bat
-SlideshowService.exe start
+```
+
+Or use the built-in Windows service support:
+```batch
+SlideshowWebServer.exe --install-service
+SlideshowWebServer.exe --start-service
 ```
 
 ## Service Management
 
-All service management commands must be run as Administrator from the `publish` folder:
+All service management commands must be run as Administrator from the `dist` folder:
 
 ### Install Service
 ```batch
-SlideshowService.exe install
+install-service.bat
+```
+or use the built-in command:
+```batch
+SlideshowWebServer.exe --install-service
 ```
 
 ### Start Service
 ```batch
-SlideshowService.exe start
+sc start SlideshowWebServer
 ```
+or use the built-in command:
+```batch
+SlideshowWebServer.exe --start-service
+```
+
+### Stop Service
+```batch
+sc stop SlideshowWebServer
+```
+or use the built-in command:
+```batch
+SlideshowWebServer.exe --stop-service
+```
+
+### Uninstall Service
+```batch
+uninstall-service.bat
+```
+or use the built-in command:
+```batch
+SlideshowWebServer.exe --uninstall-service
+```
+
+## File Structure
+
+```
+webserver/
+├── Program.cs                  # Main application entry point
+├── MediaService.cs            # Media file handling service
+├── EmbeddedFileProvider.cs    # Static file serving from embedded resources
+├── EndpointExtensions.cs      # API endpoint definitions
+├── Models.cs                  # Data models
+├── JsonContext.cs             # JSON serialization context
+├── SlideshowWebServer.csproj  # Project file
+├── build.bat                  # Build script
+├── config.json               # Configuration template
+├── web/                      # Web assets (embedded)
+│   ├── index.html
+│   ├── script.js
+│   └── styles.css
+└── win32/                    # Windows service scripts
+    ├── install-service.bat
+    └── uninstall-service.bat
+```
+
+## API Endpoints
+
+- `GET /` - Serves the main slideshow interface
+- `GET /api/config` - Returns the current configuration
+- `GET /api/files` - Returns the list of media files
+- `GET /media/{filename}` - Serves individual media files with proper MIME types
+
+## Development
+
+### Prerequisites
+- .NET 8.0 SDK
+- Windows 10/11 or Windows Server 2019+ (for service functionality)
+
+### Building
+```batch
+dotnet build
+```
+
+### Running in Development
+```batch
+dotnet run
+```
+
+The application will start on http://localhost:5500/
 
 ### Stop Service
 ```batch

@@ -11,7 +11,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<MediaService>();
 builder.Services.AddSingleton<EmbeddedFileProvider>();
 
-
 // Configure logging
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();

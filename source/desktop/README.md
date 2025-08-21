@@ -1,32 +1,46 @@
 # Slideshow MAUI App
 
-A cross-platform slideshow application built with .NET MAUI that replaces the Node.js server with native file reading capabilities. The app displays images and videos in a continuous slideshow format with support for fullscreen mode and user controls.
+A cross-platform slideshow application built with .NET MAUI that provides native file reading capabilities and a web-based slideshow interface. The app displays images and videos in a continuous slideshow format with support for fullscreen mode and user controls.
 
 ## Features
 
-- **Cross-Platform Support**: Runs on Windows and macOS
-- **WebView Integration**: Uses a WebView to display HTML-based slideshow
+- **Cross-Platform Support**: Runs on Windows and macOS via Mac Catalyst
+- **WebView Integration**: Uses a WebView to display HTML-based slideshow interface
 - **Native File Access**: Reads media files directly from the device file system
 - **Automatic Operation**: Loads configuration and starts slideshow automatically
 - **Media Support**: Displays images (JPG, PNG, GIF, WebP, BMP, SVG) and videos (MP4, WebM, OGG, AVI, MOV)
-- **Configurable Settings**: All settings loaded from config.json file
+- **Configurable Settings**: All settings loaded from embedded config.json file
+- **Self-Contained**: No external server dependencies
 
 ## Project Structure
 
 ```
-/
+desktop/
 ├── Services/
 │   └── SlideshowService.cs          # Service for handling media files and configuration
 ├── WebAssets/
 │   ├── index.html                   # Main slideshow HTML page
 │   ├── styles.css                   # Slideshow styling
-│   ├── script.js                    # Modified slideshow JavaScript for MAUI
-│   └── config.json                  # Configuration file
-├── MainPage.xaml                    # Main UI page
+│   ├── script.js                    # Slideshow JavaScript for MAUI integration
+│   └── README.md                    # Web assets documentation
+├── Platforms/                       # Platform-specific configurations
+│   ├── Windows/                     # Windows-specific files
+│   └── MacCatalyst/                 # macOS Catalyst files
+├── Resources/                       # App resources
+│   ├── AppIcon/                     # Application icons
+│   ├── Fonts/                       # Custom fonts
+│   ├── Images/                      # App images
+│   ├── Splash/                      # Splash screen
+│   └── Styles/                      # XAML styles
+├── MainPage.xaml                    # Main UI page definition
 ├── MainPage.xaml.cs                 # Main page code-behind with WebView logic
 ├── App.xaml                         # Application definition
+├── App.xaml.cs                      # Application code-behind
+├── AppShell.xaml                    # Shell navigation (if used)
 ├── MauiProgram.cs                   # App configuration and service registration
-└── SlideshowApp.csproj             # Project file
+├── SlideshowApp.csproj             # Project file
+├── SlideshowApp.sln                # Solution file
+└── config.json                     # Configuration file
 ```
 
 ## Architecture
@@ -60,7 +74,7 @@ The application follows a simplified automatic approach:
 
 ## Configuration
 
-The app loads all configuration from the bundled `WebAssets/config.json` file:
+The app loads all configuration from the root `config.json` file:
 
 ```json
 {
@@ -72,7 +86,7 @@ The app loads all configuration from the bundled `WebAssets/config.json` file:
 }
 ```
 
-**Important**: Update the `folderPath` in `WebAssets/config.json` to point to your media directory before building the app.
+**Important**: Update the `folderPath` in `config.json` to point to your media directory before building the app.
 
 ## Operation
 
@@ -98,6 +112,51 @@ The app operates automatically:
 ### Prerequisites
 - .NET 8.0 SDK
 - .NET MAUI workload: `dotnet workload install maui`
+
+### Platform-Specific Requirements
+
+#### Windows
+- Windows 10 version 1809 or higher
+- Visual Studio 2022 with MAUI workload (recommended)
+
+#### macOS
+- macOS 10.15 or higher
+- Xcode (latest stable version)
+
+### Building
+
+#### For Windows:
+```bash
+dotnet build -f net8.0-windows10.0.19041.0
+```
+
+#### For macOS:
+```bash
+dotnet build -f net8.0-maccatalyst
+```
+
+### Running
+
+#### From Visual Studio:
+1. Set the target framework to your desired platform
+2. Press F5 or click the Run button
+
+#### From Command Line:
+```bash
+dotnet run
+```
+
+### Publishing
+
+#### Windows:
+```bash
+dotnet publish -f net8.0-windows10.0.19041.0 -c Release
+```
+
+#### macOS:
+```bash
+dotnet publish -f net8.0-maccatalyst -c Release
+```
 
 ### Build
 ```bash

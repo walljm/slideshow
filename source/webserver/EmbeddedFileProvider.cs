@@ -20,12 +20,8 @@ public sealed class EmbeddedFileProvider
         var resourcePath = path.TrimStart('/').Replace('/', '.');
         var resourceName = $"{baseNamespace}.{resourcePath}";
 
-        await using var stream = assembly.GetManifestResourceStream(resourceName);
-        if (stream == null)
-        {
-            throw new FileNotFoundException($"Embedded resource not found: {resourceName}");
-        }
-
+        await using var stream = assembly.GetManifestResourceStream(resourceName)
+            ?? throw new FileNotFoundException($"Embedded resource not found: {resourceName}");
         var content = new byte[stream.Length];
         await stream.ReadExactlyAsync(content, 0, content.Length);
 

@@ -10,7 +10,14 @@ public sealed class MediaService
 
     private static readonly string[] SupportedVideoExtensions = ["mp4", "webm", "ogg", "avi", "mov"];
 
-    private static readonly string[] AllSupportedExtensions = SupportedImageExtensions.Concat(SupportedVideoExtensions).ToArray();
+    private static readonly string[] AllSupportedExtensions = [.. SupportedImageExtensions, .. SupportedVideoExtensions];
+
+    // Check multiple possible locations for config.json
+    private static readonly string[] PossibleConfigPaths =
+    [
+        Path.Combine(AppContext.BaseDirectory, "config.json"),
+        Path.Combine(Environment.CurrentDirectory, "config.json"),
+    ];
 
     private readonly ILogger<MediaService> logger;
     public SlideshowConfig Config { get; private set; }
@@ -25,14 +32,7 @@ public sealed class MediaService
     {
         try
         {
-            // Check multiple possible locations for config.json
-            var possiblePaths = new[]
-            {
-                Path.Combine(AppContext.BaseDirectory, "config.json"),
-                Path.Combine(Environment.CurrentDirectory, "config.json"),
-            };
-
-            foreach (var configPath in possiblePaths)
+            foreach (var configPath in PossibleConfigPaths)
             {
                 if (File.Exists(configPath))
                 {
