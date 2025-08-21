@@ -4,11 +4,9 @@
              x:Class="SlideshowApp.MainPage"
              Title="Slideshow">
 
-    <Grid>
-        <WebView x:Name="SlideshowWebView" 
-                 HorizontalOptions="Fill" 
-                 VerticalOptions="Fill"
-                 BackgroundColor="Black" />
-    </Grid>
+    <WebView x:Name="SlideshowWebView"
+             HorizontalOptions="Fill"
+             VerticalOptions="Fill"
+             BackgroundColor="Black"/>
 
 </ContentPage>

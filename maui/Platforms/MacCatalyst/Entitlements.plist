@@ -5,10 +5,6 @@
     <dict>
         <!-- App Sandbox must be enabled to distribute a MacCatalyst app through the Mac App Store. -->
         <key>com.apple.security.app-sandbox</key>
-        <true/>
-        <!-- When App Sandbox is enabled, this value is required to open outgoing network connections. -->
-        <key>com.apple.security.network.client</key>
-        <true/>
+        <false/>
     </dict>
 </plist>
-
