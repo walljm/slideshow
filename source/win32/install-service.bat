@@ -33,7 +33,7 @@ sc create SlideshowService ^
   displayName= "Slideshow Web Server" ^
   description= "Web-based slideshow application that displays images and videos from a configured folder. Accessible via web browser." ^
   start= "auto" ^
-  obj= "NT AUTHORITY\NetworkService"
+  obj= "LocalSystem"
 
 if %ERRORLEVEL% neq 0 (
     echo Failed to create service. Error code: %ERRORLEVEL%
