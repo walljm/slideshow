@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SlideshowWebServer;
+using Microsoft.Extensions.Configuration;
+
 using System.Runtime.InteropServices;
 using System.Text.Json;
-using Microsoft.Extensions.Configuration;
+
+using SlideshowWebServer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,8 +32,6 @@ var productionConfigurationDefaults = new Dictionary<string, string?>
     // Default logging (EventLog and Console)
     ["Logging:LogLevel:Default"] = "Warning",
     ["Logging:LogLevel:Microsoft.Hosting.Lifetime"] = "Information",
-    ["Logging:LogLevel:Microsoft.AspNetCore.Hosting.Diagnostics"] = "Warning",
-    ["Logging:LogLevel:Microsoft.AspNetCore.Routing.EndpointMiddleware"] = "Warning",
     // Debug logger.
     ["Logging:Debug:LogLevel:Default"] = "Debug",
 };
@@ -47,7 +47,14 @@ builder.Logging.AddDebug();
 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 {
     builder.Services.AddWindowsService();
-    builder.Logging.AddEventLog();
+    builder.Logging.AddEventLog(options =>
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            options.SourceName = "SlideshowService";
+            options.LogName = "Application";
+        }
+    });
 }
 
 var app = builder.Build();
