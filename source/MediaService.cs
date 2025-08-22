@@ -4,20 +4,27 @@ using SlideshowWebServer.Models;
 
 namespace SlideshowWebServer;
 
+internal sealed record MediaType(string ContentType, string Type);
+
 public sealed class MediaService
 {
-    private static readonly string[] SupportedImageExtensions = ["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"];
-
-    private static readonly string[] SupportedVideoExtensions = ["mp4", "webm", "ogg", "avi", "mov"];
-
-    private static readonly string[] AllSupportedExtensions = [.. SupportedImageExtensions, .. SupportedVideoExtensions];
-
-    // Check multiple possible locations for config.json
-    private static readonly string[] PossibleConfigPaths =
-    [
-        Path.Combine(AppContext.BaseDirectory, "config.json"),
-        Path.Combine(Environment.CurrentDirectory, "config.json"),
-    ];
+    private static readonly Dictionary<string, MediaType> SupportedExtensions = new()
+    {
+        // image types
+        { "png",  new MediaType("image/png",       "image") },
+        { "jpg",  new MediaType("image/jpeg",      "image") },
+        { "jpeg", new MediaType("image/jpeg",      "image") },
+        { "gif",  new MediaType("image/gif",       "image") },
+        { "svg",  new MediaType("image/svg+xml",   "image") },
+        { "webp", new MediaType("image/webp",      "image") },
+        { "bmp",  new MediaType("image/bmp",       "image") },
+        // video types
+        { "mp4",  new MediaType("video/mp4",       "video") },
+        { "webm", new MediaType("video/webm",      "video") },
+        { "ogg",  new MediaType("video/ogg",       "video") },
+        { "avi",  new MediaType("video/avi",       "video") },
+        { "mov",  new MediaType("video/quicktime", "video") },
+    };
 
     private readonly ILogger<MediaService> logger;
     public SlideshowConfig Config { get;  }
@@ -30,24 +37,30 @@ public sealed class MediaService
 
     private SlideshowConfig LoadConfiguration()
     {
-        foreach (var configPath in PossibleConfigPaths)
+        var configPath = Path.Combine(Environment.CurrentDirectory, "config.json");
+        if (File.Exists(configPath))
         {
-            if (File.Exists(configPath))
+            var configData = File.ReadAllText(configPath);
+            var config = JsonSerializer.Deserialize<SlideshowConfig>(configData, JsonSettings.SerializerOptions);
+            if (config != null)
             {
-                var configData = File.ReadAllText(configPath);
-                var config = JsonSerializer.Deserialize<SlideshowConfig>(configData, JsonSettings.SerializerOptions);
-                if (config != null)
+                logger.LogInformation("Configuration loaded from: {ConfigPath}", configPath);
+                logger.LogInformation("Configuration contents: {@Config}", config);
+
+                if (!Directory.Exists(this.Config.FolderPath))
                 {
-                    logger.LogInformation("Configuration loaded from: {ConfigPath}", configPath);
-                    logger.LogInformation("Configuration contents: {@Config}", config);
-                    return config;
+                    logger.LogError("Configured folder path does not exist: {FolderPath}", this.Config.FolderPath);
+                    throw new Exception($"Configured folder path does not exist: {this.Config.FolderPath}");
                 }
+
+                return config;
             }
         }
 
-
-        logger.LogError("Error loading config.json. config.json must be in either: {Join}", string.Join(", ", PossibleConfigPaths));
-        throw new Exception($"Error loading config.json. config.json must be in either: {string.Join(", ", PossibleConfigPaths)}");
+        // we want to fail catastrophically if the config file couldn't be found,
+        //  since the config file is essential.
+        logger.LogError("Error loading config.json. config.json must be in either: {ConfigPath}", configPath);
+        throw new Exception($"Error loading config.json. config.json must be in either: {configPath}");
     }
 
     public List<MediaFile> GetMediaFiles()
@@ -56,10 +69,13 @@ public sealed class MediaService
 
         try
         {
+            // this shouldn't happen, since we check on start,
+            //  but it could happen if the user removes the folder after the service has started.
+            // fail hard here.  we want the user to notice it has broken.
             if (!Directory.Exists(this.Config.FolderPath))
             {
                 logger.LogError("Configured folder path does not exist: {FolderPath}", this.Config.FolderPath);
-                return files;
+                throw new Exception($"Configured folder path does not exist: {this.Config.FolderPath}");
             }
 
             var entries = Directory.GetFiles(this.Config.FolderPath);
@@ -69,28 +85,36 @@ public sealed class MediaService
                 var fileName = Path.GetFileName(filePath);
                 var extension = Path.GetExtension(fileName).ToLowerInvariant().TrimStart('.');
 
-                if (AllSupportedExtensions.Contains(extension))
+                if (SupportedExtensions.TryGetValue(extension, out var supportedExtension))
                 {
                     files.Add(
                         new MediaFile
                         {
                             Name = fileName,
                             Path = filePath,
-                            Type = SupportedVideoExtensions.Contains(extension) ? "video" : "image",
+                            Type = supportedExtension.Type,
                         }
                     );
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Unsupported extension: {extension}");
                 }
             }
 
             // Sort files based on display order configuration
-            files = this.Config.DisplayOrder?.ToLowerInvariant() switch
+            files = this.Config.DisplayOrder.ToLowerInvariant() switch
             {
-                "random" => [.. files.OrderBy(_ => Random.Shared.Next())],
-                "alpha" or _ => [.. files.OrderBy(static f => f.Name)]
+                "random" => [.. files.OrderBy(static _ => Random.Shared.Next())],
+                _ => [.. files.OrderBy(static f => f.Name)], // alpha is the default
             };
-            
-            logger.LogInformation("Found {FileCount} media files in {FolderPath}, sorted by {DisplayOrder}", 
-                files.Count, this.Config.FolderPath, this.Config.DisplayOrder);
+
+            logger.LogInformation(
+                "Found {FileCount} media files in {FolderPath}, sorted by {DisplayOrder}",
+                files.Count,
+                this.Config.FolderPath,
+                this.Config.DisplayOrder
+            );
         }
         catch (Exception error)
         {
@@ -123,36 +147,19 @@ public sealed class MediaService
             }
 
             var fileInfo = new FileInfo(filePath);
-            var extension = Path.GetExtension(filePath).ToLowerInvariant();
+            var extension = Path.GetExtension(filePath).ToLowerInvariant().Trim('.');
 
-            if (!AllSupportedExtensions.Contains(extension))
+            if (!SupportedExtensions.TryGetValue(extension, out var supportedExtension))
             {
                 logger.LogWarning("File type not supported: {Extension}", extension);
                 return Task.FromResult<(Stream? stream, string contentType)>((null, string.Empty));
             }
-            
-            var contentType = extension switch
-            {
-                ".png" => "image/png",
-                ".jpg" => "image/jpeg",
-                ".jpeg" => "image/jpeg",
-                ".gif" => "image/gif",
-                ".svg" => "image/svg+xml",
-                ".webp" => "image/webp",
-                ".bmp" => "image/bmp",
-                ".mp4" => "video/mp4",
-                ".webm" => "video/webm",
-                ".ogg" => "video/ogg",
-                ".avi" => "video/avi",
-                ".mov" => "video/quicktime",
-                _ => "application/octet-stream",
-            };
 
             var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
 
             logger.LogDebug("Serving media file: {FileName}, Size: {FileSize} bytes", fileName, fileInfo.Length);
 
-            return Task.FromResult<(Stream? stream, string contentType)>((stream, contentType));
+            return Task.FromResult<(Stream? stream, string contentType)>((stream, supportedExtension.ContentType));
         }
         catch (Exception error)
         {
