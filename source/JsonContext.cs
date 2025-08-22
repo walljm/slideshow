@@ -11,9 +11,7 @@ namespace SlideshowWebServer;
 [JsonSerializable(typeof(FileStreamHttpResult))]
 [JsonSerializable(typeof(FileContentHttpResult))]
 [JsonSerializable(typeof(NotFound<string>))]
-public partial class JsonContext : JsonSerializerContext
-{
-}
+public partial class JsonContext : JsonSerializerContext;
 
 public static class JsonSettings
 {

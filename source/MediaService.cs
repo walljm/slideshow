@@ -123,6 +123,7 @@ public sealed class MediaService
         return files;
     }
 
+    private static readonly (Stream? stream, string contentType) ErrorMediaFileResult = (null, string.Empty);
     public Task<(Stream? stream, string contentType)> GetMediaFileStreamAsync(string fileName)
     {
         try
@@ -136,22 +137,22 @@ public sealed class MediaService
             if (!resolvedPath.StartsWith(resolvedFolder, StringComparison.OrdinalIgnoreCase))
             {
                 logger.LogWarning("Access denied - path outside configured folder: {ResolvedPath}", resolvedPath);
-                return Task.FromResult<(Stream? stream, string contentType)>((null, string.Empty));
+                return Task.FromResult(ErrorMediaFileResult);
             }
 
             if (!File.Exists(filePath))
             {
                 logger.LogWarning("File not found: {FilePath}", filePath);
-                return Task.FromResult<(Stream? stream, string contentType)>((null, string.Empty));
+                return Task.FromResult(ErrorMediaFileResult);
             }
 
             var fileInfo = new FileInfo(filePath);
-            var extension = Path.GetExtension(filePath).ToLowerInvariant().Trim('.');
+            var extension = fileInfo.Extension.ToLowerInvariant().Trim('.');
 
             if (!SupportedExtensions.TryGetValue(extension, out var supportedExtension))
             {
                 logger.LogWarning("File type not supported: {Extension}", extension);
-                return Task.FromResult<(Stream? stream, string contentType)>((null, string.Empty));
+                return Task.FromResult(ErrorMediaFileResult);
             }
 
             var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -163,7 +164,7 @@ public sealed class MediaService
         catch (Exception error)
         {
             logger.LogError(error, "Error serving media file: {FileName}", fileName);
-            return Task.FromResult<(Stream? stream, string contentType)>((null, string.Empty));
+            return Task.FromResult(ErrorMediaFileResult);
         }
     }
 }

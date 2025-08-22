@@ -19,7 +19,7 @@ public static class EndpointExtensions
         app.MapGet("/media/{fileName}", GetMediaFiles);
 
         // Static file serving from embedded resources
-        app.MapGet("/{*path}", DefaultHandler);
+        app.MapGet("/{*path}", EmbeddedFileHandler);
     }
 
     private static async Task<Results<FileStreamHttpResult, NotFound<string>>> GetMediaFiles(
@@ -33,7 +33,10 @@ public static class EndpointExtensions
             : TypedResults.Stream(stream, contentType, fileName, DateTimeOffset.UtcNow, enableRangeProcessing: true);
     }
 
-    private static async Task<Results<FileContentHttpResult, NotFound<string>>> DefaultHandler(
+    /// <summary>
+    /// Only handles files from the embedded file provider
+    /// </summary>
+    private static async Task<Results<FileContentHttpResult, NotFound<string>>> EmbeddedFileHandler(
         [FromServices] EmbeddedFileProvider fileProvider,
         [FromRoute] string? path
     )
