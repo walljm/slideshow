@@ -1,4 +1,4 @@
-namespace SlideshowWebServer.Models;
+namespace SlideshowWebServer;
 
 public sealed class SlideshowConfig
 {
@@ -6,7 +6,10 @@ public sealed class SlideshowConfig
     public string FolderPath { get; set; } = "./media";
     public int FadeTransitionDuration { get; set; } = 1;
     public bool ZoomOnImage { get; set; } = true;
-    public string DisplayOrder { get; set; } = "Alpha";
+    public string DisplayOrder { get; set; } = AlphabeticalDisplayOrder;
+
+    public const string AlphabeticalDisplayOrder = "alpha";
+    public const string RandomDisplayOrder = "random";
 }
 
 public sealed class MediaFile

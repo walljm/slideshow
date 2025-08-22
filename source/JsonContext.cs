@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Http.HttpResults;
-using SlideshowWebServer.Models;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 

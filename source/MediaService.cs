@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using SlideshowWebServer.Models;
 
 namespace SlideshowWebServer;
 
@@ -105,7 +104,7 @@ public sealed class MediaService
             // Sort files based on display order configuration
             files = this.Config.DisplayOrder.ToLowerInvariant() switch
             {
-                "random" => [.. files.OrderBy(static _ => Random.Shared.Next())],
+                SlideshowConfig.RandomDisplayOrder => [.. files.OrderBy(static _ => Random.Shared.Next())],
                 _ => [.. files.OrderBy(static f => f.Name)], // alpha is the default
             };
 
