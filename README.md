@@ -215,8 +215,6 @@ While Local System provides the best compatibility, you may want to use a more r
      sc start SlideshowService
      ```
 
-```
-
 ##### Security Considerations
 
 **Local System Account (Default):**
