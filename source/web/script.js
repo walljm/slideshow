@@ -16,7 +16,7 @@ class Slideshow {
             await this.loadFiles();
             this.hideLoading();
 
-            if (this.files.length > 0 && this.config.autoStart) {
+            if (this.files.length > 0) {
                 this.startSlideshow();
             } else if (this.files.length === 0) {
                 await this.waitAndRetry();
@@ -36,9 +36,7 @@ class Slideshow {
                 await this.loadFiles();
                 if (this.files.length > 0) {
                     this.hideWaiting();
-                    if (this.config.autoStart) {
-                        this.startSlideshow();
-                    }
+                    this.startSlideshow();
                 } else {
                     await this.waitAndRetry(); // Keep trying
                 }

@@ -82,9 +82,15 @@ public sealed class MediaService
                 }
             }
 
-            // Sort files by name
-            files = [.. files.OrderBy(static f => f.Name)];
-            logger.LogInformation("Found {FileCount} media files in {FolderPath}", files.Count, this.Config.FolderPath);
+            // Sort files based on display order configuration
+            files = this.Config.DisplayOrder?.ToLowerInvariant() switch
+            {
+                "random" => [.. files.OrderBy(_ => Random.Shared.Next())],
+                "alpha" or _ => [.. files.OrderBy(static f => f.Name)]
+            };
+            
+            logger.LogInformation("Found {FileCount} media files in {FolderPath}, sorted by {DisplayOrder}", 
+                files.Count, this.Config.FolderPath, this.Config.DisplayOrder);
         }
         catch (Exception error)
         {

@@ -5,8 +5,8 @@ public sealed class SlideshowConfig
     public int ImageDuration { get; set; } = 5;
     public string FolderPath { get; set; } = "./media";
     public int FadeTransitionDuration { get; set; } = 1;
-    public bool AutoStart { get; set; } = true;
     public bool ZoomOnImage { get; set; } = true;
+    public string DisplayOrder { get; set; } = "Alpha";
 }
 
 public sealed class MediaFile
