@@ -36,7 +36,7 @@ public sealed class MediaService
 
     private SlideshowConfig LoadConfiguration()
     {
-        var configPath = Path.Combine(Environment.CurrentDirectory, "config.json");
+        var configPath = Path.Combine(AppContext.BaseDirectory, "config.json");
         if (File.Exists(configPath))
         {
             var configData = File.ReadAllText(configPath);
@@ -46,7 +46,7 @@ public sealed class MediaService
                 logger.LogInformation("Configuration loaded from: {ConfigPath}", configPath);
                 logger.LogInformation("Configuration contents: {@Config}", config);
 
-                if (!Directory.Exists(this.Config.FolderPath))
+                if (!Directory.Exists(config.FolderPath))
                 {
                     logger.LogError("Configured folder path does not exist: {FolderPath}", this.Config.FolderPath);
                     throw new Exception($"Configured folder path does not exist: {this.Config.FolderPath}");
@@ -94,10 +94,6 @@ public sealed class MediaService
                             Type = supportedExtension.Type,
                         }
                     );
-                }
-                else
-                {
-                    throw new InvalidOperationException($"Unsupported extension: {extension}");
                 }
             }
 
