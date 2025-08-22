@@ -15,7 +15,7 @@ The application searches for `config.json` in the following order:
 1. Same directory as the executable
 2. Current working directory
 
-Edit the `config.json` in the `dist` folder:
+Edit the `config.json`
 
 ```json
 {
@@ -26,8 +26,6 @@ Edit the `config.json` in the `dist` folder:
   "displayOrder": "Alpha"
 }
 ```
-
-**Configuration Options:**
 - `imageDuration`: How long to display each image (in seconds)
 - `folderPath`: Full path to the folder containing your media files
 - `fadeTransitionDuration`: Duration of fade transition between images/videos (in seconds)
@@ -37,8 +35,6 @@ Edit the `config.json` in the `dist` folder:
 ### Command Line Options
 
 The application supports various command line arguments for configuration:
-
-#### URL Configuration
 
 You can change the URLs and ports the server listens on using the `--Urls` parameter:
 
@@ -59,8 +55,6 @@ SlideshowWebServer.exe --urls "http://localhost:5500;https://localhost:5501"
 SlideshowWebServer.exe --urls "http://*:3000"
 ```
 
-#### Other Configuration Options
-
 You can override any configuration setting using command line arguments:
 
 ```batch
@@ -76,6 +70,7 @@ SlideshowWebServer.exe --urls "http://*:8080" --Logging:LogLevel:Default=Debug
 ### Logging
 
 When running as a standalone application, logs are written to the console.
+
 When running as a Windows service, logs are written to the Windows Event Log under "Application".
 
 ### Security Notes
@@ -87,7 +82,7 @@ When running as a Windows service, logs are written to the Windows Event Log und
 
 ### Standalone Application
 
-The application can be built for multiple platforms. Navigate to the `dist` folder and run the appropriate executable for your platform:
+Navigate to the `dist` folder and run the appropriate executable for your platform:
 
 #### Windows (x64)
 ```batch
@@ -104,7 +99,7 @@ SlideshowWebServer.exe
 chmod +x SlideshowWebServer
 ```
 
-### Building from Source
+### Publishing from Source
 
 To build the application for different platforms, use the provided build scripts:
 
@@ -133,15 +128,13 @@ All builds will output to the `./dist` folder as a self-contained executable wit
 The server will start on http://localhost:5500/ by default.
 
 
-### Windows Service Installation
+## Windows Service Installation
 
 **Important: Run as Administrator**
 
-#### Service Management
+All service management commands must be run as Administrator from the `dist\win32` folder:
 
-All service management commands must be run as Administrator from the `dist/win32` folder:
-
-##### Install Service
+### Install Service
 ```batch
 install-service.bat
 ```
@@ -159,21 +152,21 @@ The install script will:
 - **Start Type**: Automatic
 - **Run As**: Local System (for broad file system access)
 
-##### Uninstall Service
+### Uninstall Service
 ```batch
 uninstall-service.bat
 ```
 
-#### Security and Service Account Configuration
+## Security and Service Account Configuration
 
-##### Default Service Account
+### Default Service Account
 
 By default, the Windows service runs as **Local System**, which provides broad access to the file system and eliminates most media folder access issues. This account can access:
 - All local drives and folders
 - Network resources (if the computer account has permissions)
 - User profile folders (Documents, Pictures, etc.)
 
-##### When to Change the Service Account
+### When to Change the Service Account
 
 While Local System provides the best compatibility, you may want to use a more restrictive account in security-sensitive environments:
 
@@ -182,9 +175,30 @@ While Local System provides the best compatibility, you may want to use a more r
 - You need to comply with security policies that require least-privilege service accounts
 - The slideshow will only access a specific folder that can be secured for a dedicated account
 
-##### How to Change Service Account
+### Security Considerations
 
-**Use Services Management Console (Recommended)**
+**Local System Account (Default):**
+- **Pros:** Maximum compatibility, can access any local folder or network resource
+- **Cons:** Has full administrative privileges on the system
+- **Best for:** Dedicated kiosk machines, home media servers, isolated display systems
+
+**NetworkService Account:**
+- **Pros:** More secure, limited system privileges
+- **Cons:** May not access user folders, network drives, or mapped drives without additional configuration
+- **Best for:** Corporate environments, systems with strict security requirements
+
+**Dedicated Service Account:**
+- **Pros:** Can be granted only the specific permissions needed
+- **Cons:** Requires manual setup and permission management
+- **Best for:** Enterprise deployments with specific security policies
+
+**General Security Tips:**
+- Use Local System on dedicated/isolated systems where convenience matters most
+- Use NetworkService or dedicated accounts in corporate/shared environments
+- Ensure the media folder has appropriate access controls regardless of service account
+- Consider network-level security (firewall rules) to limit access to the web interface
+
+### How to Change Service Account
 
 1. **Open Services Management:**
    - Press `Win + R`, type `services.msc`, and press Enter
@@ -212,30 +226,7 @@ While Local System provides the best compatibility, you may want to use a more r
      sc start SlideshowService
      ```
 
-### Security Considerations
-
-**Local System Account (Default):**
-- **Pros:** Maximum compatibility, can access any local folder or network resource
-- **Cons:** Has full administrative privileges on the system
-- **Best for:** Dedicated kiosk machines, home media servers, isolated display systems
-
-**NetworkService Account:**
-- **Pros:** More secure, limited system privileges
-- **Cons:** May not access user folders, network drives, or mapped drives without additional configuration
-- **Best for:** Corporate environments, systems with strict security requirements
-
-**Dedicated Service Account:**
-- **Pros:** Can be granted only the specific permissions needed
-- **Cons:** Requires manual setup and permission management
-- **Best for:** Enterprise deployments with specific security policies
-
-**General Security Tips:**
-- Use Local System on dedicated/isolated systems where convenience matters most
-- Use NetworkService or dedicated accounts in corporate/shared environments
-- Ensure the media folder has appropriate access controls regardless of service account
-- Consider network-level security (firewall rules) to limit access to the web interface
-
-#### Verifying Access
+### Verifying Access
 
 After changing the service user:
 

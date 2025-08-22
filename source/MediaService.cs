@@ -125,6 +125,12 @@ public sealed class MediaService
             var fileInfo = new FileInfo(filePath);
             var extension = Path.GetExtension(filePath).ToLowerInvariant();
 
+            if (!AllSupportedExtensions.Contains(extension))
+            {
+                logger.LogWarning("File type not supported: {Extension}", extension);
+                return Task.FromResult<(Stream? stream, string contentType)>((null, string.Empty));
+            }
+            
             var contentType = extension switch
             {
                 ".png" => "image/png",
