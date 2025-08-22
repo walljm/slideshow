@@ -6,8 +6,7 @@ class Slideshow {
         this.currentContainer = 0;
         this.config = null;
 
-        this.init().then(() => {
-        });
+        this.init().then(() => {});
     }
 
     async init() {
@@ -139,12 +138,12 @@ class Slideshow {
 
             mediaElement.addEventListener('loadedmetadata', () => {
                 this.switchToContainer(nextContainer);
-                this.scheduleNext(mediaElement.duration * 1000);
+                // don't use duration for video... play it through to the end.
+                //this.scheduleNext(mediaElement.duration * 1000);
             });
 
             mediaElement.addEventListener('ended', () => {
-                this.nextSlide().then(() => {
-                });
+                this.nextSlide().then(() => {});
             });
 
             mediaElement.addEventListener('error', (e) => {
