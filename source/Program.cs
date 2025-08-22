@@ -28,7 +28,7 @@ var productionConfigurationDefaults = new Dictionary<string, string?>
     ["AllowedHosts"] = "*",
     ["Urls"] = "http://*:5500",
     // Default logging (EventLog and Console)
-    ["Logging:LogLevel:Default"] = "Information",
+    ["Logging:LogLevel:Default"] = "Warning",
     ["Logging:LogLevel:Microsoft.Hosting.Lifetime"] = "Information",
     ["Logging:LogLevel:Microsoft.AspNetCore.Hosting.Diagnostics"] = "Warning",
     ["Logging:LogLevel:Microsoft.AspNetCore.Routing.EndpointMiddleware"] = "Warning",
