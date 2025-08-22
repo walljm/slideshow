@@ -8,8 +8,6 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 
-const int port = 5500;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure System.Text.Json for polymorphism
@@ -28,7 +26,7 @@ builder.Services.AddSingleton<EmbeddedFileProvider>();
 var productionConfigurationDefaults = new Dictionary<string, string?>
 {
     ["AllowedHosts"] = "*",
-    ["Urls"] = $"http://*:{port}",
+    ["Urls"] = "http://*:5500",
     // Default logging (EventLog and Console)
     ["Logging:LogLevel:Default"] = "Information",
     ["Logging:LogLevel:Microsoft.Hosting.Lifetime"] = "Information",
@@ -38,6 +36,7 @@ var productionConfigurationDefaults = new Dictionary<string, string?>
     ["Logging:Debug:LogLevel:Default"] = "Debug",
 };
 builder.Configuration.AddInMemoryCollection(productionConfigurationDefaults);
+builder.Configuration.AddCommandLine(args);
 
 // Configure logging
 builder.Logging.ClearProviders();
@@ -52,10 +51,5 @@ if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 }
 
 var app = builder.Build();
-
 app.AddSlideshowEndpoints();
-
-app.Services
-   .GetRequiredService<ILogger<Program>>()
-   .LogInformation("Slideshow server starting on http://*:{Port}/", port);
 app.Run();
