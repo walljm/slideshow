@@ -1,4 +1,4 @@
-# Slideshow Web Server (.NET)
+# Slideshow Web Server
 
 A .NET slideshow web application that can be configured to display images and videos in a web browser. It supports both standalone execution and installation as a Windows service.
 
@@ -18,8 +18,8 @@ Edit the `config.json` in the `dist` folder:
   "imageDuration": 5,
   "folderPath": "C:\\Path\\To\\Your\\Media\\Files",
   "fadeTransitionDuration": 1,
-  "autoStart": true,
-  "zoomOnImage": true
+  "zoomOnImage": true,
+  "displayOrder": "Alpha"
 }
 ```
 
@@ -28,6 +28,7 @@ Edit the `config.json` in the `dist` folder:
 - `folderPath`: Full path to the folder containing your media files
 - `fadeTransitionDuration`: Duration of fade transition between images/videos (in seconds)
 - `zoomOnImage`: Whether to apply subtle zoom animation to images
+- `displayOrder`: Order to display media files - `"Alpha"` for alphabetical, `"Random"` for random order
 
 ### Configuration File Locations
 
