@@ -11,6 +11,10 @@ A .NET slideshow web application that can be configured to display images and vi
 
 ## Configuration
 
+The application searches for `config.json` in the following order:
+1. Same directory as the executable
+2. Current working directory
+
 Edit the `config.json` in the `dist` folder:
 
 ```json
@@ -30,80 +34,11 @@ Edit the `config.json` in the `dist` folder:
 - `zoomOnImage`: Whether to apply subtle zoom animation to images
 - `displayOrder`: Order to display media files - `"Alpha"` for alphabetical, `"Random"` for random order
 
-### Configuration File Locations
-
-The application searches for `config.json` in the following order:
-1. Same directory as the executable
-2. Current working directory
-
-### Logging
-
-When running as a standalone application, logs are written to the console.
-When running as a Windows service, logs are written to the Windows Event Log under "Application".
-
-### Security Notes
-
-- The application includes path traversal protection to prevent access to files outside the configured media folder
-- Only files with supported extensions are served
-- The server listens on HTTP (default port 5500) - use a reverse proxy like IIS or nginx for HTTPS in production
-- When changing URLs via command line, ensure the new ports don't conflict with other services
-
-## Running the Application
-
-### Standalone Application
-
-#### Platform-Specific Executables
-
-The application can be built for multiple platforms. Navigate to the `dist` folder and run the appropriate executable for your platform:
-
-##### Windows (x64)
-```batch
-SlideshowWebServer.exe
-```
-
-##### Linux (x64), macOS (Intel x64, Apple Silicon ARM)
-```bash
-./SlideshowWebServer
-```
-
-**Note**: On macOS and Linux, you may need to make the executable file executable first:
-```bash
-chmod +x SlideshowWebServer
-```
-
-#### Building from Source
-
-To build the application for different platforms, use the provided build scripts:
-
-##### Windows Build
-```batch
-buildwin.bat
-```
-
-##### Linux x64 Build
-```bash
-./buildlinuxx64.sh
-```
-
-##### macOS Intel x64 Build
-```bash
-./buildmacx64.sh
-```
-
-##### macOS Apple Silicon ARM Build
-```bash
-./buildmacarm.sh
-```
-
-All builds will output to the `./dist` folder as a self-contained executable with all dependencies included.
-
-The server will start on http://localhost:5500/ by default.
-
-#### Command Line Options
+### Command Line Options
 
 The application supports various command line arguments for configuration:
 
-##### URL Configuration
+#### URL Configuration
 
 You can change the URLs and ports the server listens on using the `--Urls` parameter:
 
@@ -124,7 +59,7 @@ SlideshowWebServer.exe --urls "http://localhost:5500;https://localhost:5501"
 SlideshowWebServer.exe --urls "http://*:3000"
 ```
 
-##### Other Configuration Options
+#### Other Configuration Options
 
 You can override any configuration setting using command line arguments:
 
@@ -135,6 +70,68 @@ SlideshowWebServer.exe --Logging:LogLevel:Default=Debug
 # Combine URL and logging configuration
 SlideshowWebServer.exe --urls "http://*:8080" --Logging:LogLevel:Default=Debug
 ```
+
+## Running the Application
+
+### Logging
+
+When running as a standalone application, logs are written to the console.
+When running as a Windows service, logs are written to the Windows Event Log under "Application".
+
+### Security Notes
+
+- The application includes path traversal protection to prevent access to files outside the configured media folder
+- Only files with supported extensions are served
+- The server listens on HTTP (default port 5500) - use a reverse proxy like IIS or nginx for HTTPS in production
+- When changing URLs via command line, ensure the new ports don't conflict with other services
+
+### Standalone Application
+
+The application can be built for multiple platforms. Navigate to the `dist` folder and run the appropriate executable for your platform:
+
+#### Windows (x64)
+```batch
+SlideshowWebServer.exe
+```
+
+#### Linux (x64), macOS (Intel x64, Apple Silicon ARM)
+```bash
+./SlideshowWebServer
+```
+
+**Note**: On macOS and Linux, you may need to make the executable file executable first:
+```bash
+chmod +x SlideshowWebServer
+```
+
+### Building from Source
+
+To build the application for different platforms, use the provided build scripts:
+
+#### Windows Build
+```batch
+buildwin.bat
+```
+
+#### Linux x64 Build
+```bash
+./buildlinuxx64.sh
+```
+
+#### macOS Intel x64 Build
+```bash
+./buildmacx64.sh
+```
+
+#### macOS Apple Silicon ARM Build
+```bash
+./buildmacarm.sh
+```
+
+All builds will output to the `./dist` folder as a self-contained executable with all dependencies included.
+
+The server will start on http://localhost:5500/ by default.
+
 
 ### Windows Service Installation
 
@@ -215,7 +212,7 @@ While Local System provides the best compatibility, you may want to use a more r
      sc start SlideshowService
      ```
 
-##### Security Considerations
+### Security Considerations
 
 **Local System Account (Default):**
 - **Pros:** Maximum compatibility, can access any local folder or network resource
@@ -238,7 +235,7 @@ While Local System provides the best compatibility, you may want to use a more r
 - Ensure the media folder has appropriate access controls regardless of service account
 - Consider network-level security (firewall rules) to limit access to the web interface
 
-##### Verifying Access
+#### Verifying Access
 
 After changing the service user:
 
@@ -254,7 +251,7 @@ After changing the service user:
 
 3. **Test the web interface** by accessing the slideshow at `http://localhost:5500`
 
-##### Troubleshooting Access Issues
+#### Troubleshooting Access Issues
 
 If you change from Local System to a more restrictive account and encounter access issues:
 
