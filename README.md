@@ -1,32 +1,18 @@
 # Slideshow Web Server (.NET)
 
-A .NET/C# implementation of the slideshow web application that can be run as a standalone application or installed as a Windows service.
+A .NET slideshow web application that can be configured to display images and videos in a web browser. It supports both standalone execution and installation as a Windows service.
 
 ## Features
 
-- **Kestrel Web Server**: High-performance HTTP server listening on port 5500
-- **Embedded Static Files**: HTML, CSS, and JavaScript files are bundled into the executable
 - **Media File Support**: Supports images (JPG, PNG, GIF, WebP, BMP, SVG) and videos (MP4, WebM, OGG, AVI, MOV)
 - **Configuration**: JSON-based configuration for slideshow behavior
 - **Windows Service**: Can be installed and run as a Windows service
-- **Security**: Path traversal protection for media file access
-- **Logging**: Comprehensive logging with Event Log support when running as a service
 - **Single File Deployment**: Self-contained executable with all dependencies
 
-## Architecture
 
-The application consists of a single .NET project (`SlideshowWebServer`) that:
-- Serves the slideshow web interface from embedded resources
-- Provides API endpoints for configuration and media files
-- Streams media files with proper MIME types
-- Supports both standalone and Windows service execution modes
-- Uses the `MediaService` for file operations and `EmbeddedFileProvider` for static content
+# 2. Configure the Application
 
-## Quick Start
-
-### 2. Configure the Application
-
-Copy `config.json` to the `dist` folder and edit it:
+Edit the `config.json` in the `dist` folder:
 
 ```json
 {
@@ -41,18 +27,75 @@ Copy `config.json` to the `dist` folder and edit it:
 **Configuration Options:**
 - `imageDuration`: How long to display each image (in seconds)
 - `folderPath`: Full path to the folder containing your media files
-- `fadeTransitionDuration`: Duration of fade transition between images (in seconds)
-- `autoStart`: Whether to start the slideshow automatically when loaded
+- `fadeTransitionDuration`: Duration of fade transition between images/videos (in seconds)
 - `zoomOnImage`: Whether to apply subtle zoom animation to images
 
-### 3. Run as Standalone Application
+### Configuration File Locations
 
-Navigate to the `dist` folder and run:
+The application searches for `config.json` in the following order:
+1. Same directory as the executable
+2. Current working directory
+
+## Logging
+
+When running as a standalone application, logs are written to the console.
+When running as a Windows service, logs are written to the Windows Event Log under "Application".
+
+## Security Notes
+
+- The application includes path traversal protection to prevent access to files outside the configured media folder
+- Only files with supported extensions are served
+- The server listens on HTTP (default port 5500) - use a reverse proxy like IIS or nginx for HTTPS in production
+- When changing URLs via command line, ensure the new ports don't conflict with other services
+
+# 3. Run as Standalone Application
+
+## Platform-Specific Executables
+
+The application can be built for multiple platforms. Navigate to the `dist` folder and run the appropriate executable for your platform:
+
+### Windows (x64)
 ```batch
 SlideshowWebServer.exe
 ```
 
-The server will start on http://localhost:5500/
+### Linux (x64), macOS (Intel x64, Apple Silicon ARM)
+```bash
+./SlideshowWebServer
+```
+
+**Note**: On macOS and Linux, you may need to make the executable file executable first:
+```bash
+chmod +x SlideshowWebServer
+```
+
+## Building from Source
+
+To build the application for different platforms, use the provided build scripts:
+
+### Windows Build
+```batch
+buildwin.bat
+```
+
+### Linux x64 Build
+```bash
+./buildlinuxx64.sh
+```
+
+### macOS Intel x64 Build
+```bash
+./buildmacx64.sh
+```
+
+### macOS Apple Silicon ARM Build
+```bash
+./buildmacarm.sh
+```
+
+All builds will output to the `./dist` folder as a self-contained executable with all dependencies included.
+
+The server will start on http://localhost:5500/ by default.
 
 ## Command Line Options
 
@@ -91,7 +134,7 @@ SlideshowWebServer.exe --Logging:LogLevel:Default=Debug
 SlideshowWebServer.exe --urls "http://*:8080" --Logging:LogLevel:Default=Debug
 ```
 
-### 4. Install as Windows Service
+# 4. Install as Windows Service
 
 **Important: Run as Administrator**
 
@@ -104,31 +147,20 @@ All service management commands must be run as Administrator from the `dist/win3
 install-service.bat
 ```
 
-**Note**: To configure the service to run on a different port, you can modify the service after installation or create a custom service configuration. The service will use the default URL configuration (http://*:5500) unless overridden through environment variables.
+The install script will:
+- Create Windows Event Log sources for proper logging
+- Create the service with the name "SlideshowService" and display name "Slideshow Web Server"
+- Set the service to start automatically on system boot
+- Start the service immediately after creation
+
+**Service Details:**
+- **Service Name**: SlideshowService
+- **Display Name**: Slideshow Web Server
+- **Description**: Web-based slideshow application that displays images and videos from a configured folder. Accessible via web browser.
+- **Start Type**: Automatic
+- **Run As**: NT AUTHORITY\NetworkService
 
 ### Uninstall Service
 ```batch
 uninstall-service.bat
 ```
-
-### Prerequisites
-- .NET 8.0 SDK
-- Windows 10/11 or Windows Server 2019+ (for service functionality)
-
-## Configuration File Locations
-
-The application searches for `config.json` in the following order:
-1. Same directory as the executable
-2. Current working directory
-
-## Logging
-
-When running as a standalone application, logs are written to the console.
-When running as a Windows service, logs are written to the Windows Event Log under "Application".
-
-## Security Notes
-
-- The application includes path traversal protection to prevent access to files outside the configured media folder
-- Only files with supported extensions are served
-- The server listens on HTTP (default port 5500) - use a reverse proxy like IIS or nginx for HTTPS in production
-- When changing URLs via command line, ensure the new ports don't conflict with other services
