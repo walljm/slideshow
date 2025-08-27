@@ -131,15 +131,23 @@ class Slideshow {
             mediaElement = document.createElement('video');
             mediaElement.src = mediaUrl;
             mediaElement.autoplay = true;
-            mediaElement.muted = false; // Enable sound
+            mediaElement.muted = true; // Mute to allow autoplay in modern browsers
             mediaElement.controls = false;
             mediaElement.style.maxWidth = '100%';
             mediaElement.style.maxHeight = '100%';
+            mediaElement.preload = 'auto';
+            mediaElement.playsInline = true; // Helps with mobile autoplay
+            mediaElement.setAttribute('playsinline', ''); // Additional mobile support
 
             mediaElement.addEventListener('loadedmetadata', () => {
                 this.switchToContainer(nextContainer);
-                // don't use duration for video... play it through to the end.
-                //this.scheduleNext(mediaElement.duration * 1000);
+                // Try to play the video explicitly
+                this.playVideo(mediaElement);
+            });
+
+            // Also try to play when the video is loaded enough to start playing
+            mediaElement.addEventListener('canplay', () => {
+                this.playVideo(mediaElement);
             });
 
             mediaElement.addEventListener('ended', () => {
@@ -183,6 +191,18 @@ class Slideshow {
         }
 
         containerElement.appendChild(mediaElement);
+    }
+
+    async playVideo(videoElement) {
+        try {
+            await videoElement.play();
+        } catch (error) {
+            console.error('Failed to autoplay video:', error);
+            // If autoplay fails, try unmuting and playing again after user interaction
+            if (error.name === 'NotAllowedError') {
+                console.log('Autoplay prevented - video is ready but requires user interaction');
+            }
+        }
     }
 
     switchToContainer(containerIndex) {
