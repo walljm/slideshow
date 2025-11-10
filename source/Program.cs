@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.Systemd;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 
@@ -55,6 +56,12 @@ if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             options.LogName = "Application";
         }
     });
+}
+
+// Add linux service support
+if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+{
+    builder.Host.UseSystemd();
 }
 
 var app = builder.Build();

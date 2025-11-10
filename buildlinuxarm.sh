@@ -1,0 +1,1 @@
+dotnet publish source/SlideshowWebServer.csproj -c Release -r linux-arm64 --self-contained true -p:PublishSingleFile=true -o ./dist
