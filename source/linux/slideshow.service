@@ -6,7 +6,7 @@ StartLimitBurst=5
 [Service]
 DynamicUser=yes
 WorkingDirectory=/opt/walljm/slideshow
-ExecStart=/opt/walljm/slideshow/Slideshowserver
+ExecStart=/opt/walljm/slideshow/SlideshowWebServer
 Type=notify
 Restart=always
 RestartSec=15

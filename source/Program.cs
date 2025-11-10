@@ -48,7 +48,7 @@ builder.Logging.AddDebug();
 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 {
     builder.Services.AddWindowsService();
-    builder.Logging.AddEventLog(options =>
+    builder.Logging.AddEventLog(static options =>
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
