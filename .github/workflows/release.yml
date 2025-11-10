@@ -18,6 +18,8 @@ jobs:
         include:
           - runtime: linux-x64
             folder: linux-x64
+          - runtime: linux-arm64
+            folder: linux-arm
           - runtime: osx-arm64
             folder: mac-arm
           - runtime: osx-x64
@@ -69,6 +71,7 @@ jobs:
       run: |
         mkdir -p dist
         mv artifacts/slideshow-linux-x64 dist/linux-x64
+        mv artifacts/slideshow-linux-arm dist/linux-arm
         mv artifacts/slideshow-mac-arm dist/mac-arm
         mv artifacts/slideshow-mac-x64 dist/mac-x64
         mv artifacts/slideshow-win-x64 dist/win-x64
@@ -77,6 +80,7 @@ jobs:
       run: |
         cd dist
         tar -czf ../slideshow-linux-x64.tar.gz linux-x64/
+        tar -czf ../slideshow-linux-arm.tar.gz linux-arm/
         tar -czf ../slideshow-mac-arm.tar.gz mac-arm/
         tar -czf ../slideshow-mac-x64.tar.gz mac-x64/
         zip -r ../slideshow-win-x64.zip win-x64/
@@ -86,6 +90,7 @@ jobs:
       with:
         files: |
           slideshow-linux-x64.tar.gz
+          slideshow-linux-arm.tar.gz
           slideshow-mac-arm.tar.gz
           slideshow-mac-x64.tar.gz
           slideshow-win-x64.zip
