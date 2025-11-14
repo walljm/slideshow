@@ -4,6 +4,11 @@ Install ubuntu.
 ## Ubuntu Frame Kiosk Setup on Ubuntu
 
 ```bash
+sudo apt update
+sudo apt upgrade -y
+```
+Install Ubuntu Frame and WPE Webkit Mir Kiosk
+```bash
 sudo snap install ubuntu-frame
 sudo snap install wpe-webkit-mir-kiosk
 sudo snap set ubuntu-frame daemon=true
@@ -29,7 +34,9 @@ sudo systemctl daemon-reload
 sudo systemctl enable slideshow.service
 sudo systemctl start slideshow.service
 ```
+
 Install the service to switch to the kiosk tty on startup
+
 ```bash
 sudo mv ./linux/kiosk.service /etc/systemd/system
 sudo systemctl daemon-reload
@@ -37,20 +44,23 @@ sudo systemctl enable kiosk.service
 sudo systemctl start kiosk.service
 ```
 
-Configure samba auto mount.
+If you want to configure a samba auto mount (as opposed to using local files), do the following:
 
 FIRST!  Edit the file `source/linux/auto.smb` to replace `<ip_of_server>/path/to/photo/folder` with your samba server ip and photo folder path.
 SECOND! Update the credential file at `/opt/walljm/slideshow/credential.txt` with your samba username and password.
 
 Then run the following commands:
+
 ```bash
-sudo apt install autofs cifs-utils
+sudo apt install -y autofs cifs-utils
+
 sudo cat >/etc/auto.master.d/slideshow.autofs <<EOF
 /- /opt/walljm/slideshow/auto.smb --timeout 60 browse
 EOF
 ```
 
-Reboot!
+Reboot to ensure it comes up in kiosk mode:
+
 ```bash
 sudo systemctl reboot
 ```
