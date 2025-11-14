@@ -1,5 +1,5 @@
 [Unit]
-Description=WALLJM Slideshow Service
+Description=Walljm Slideshow Server
 StartLimitInterval=200
 StartLimitBurst=5
 

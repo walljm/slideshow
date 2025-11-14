@@ -79,10 +79,10 @@ jobs:
     - name: Create release archives
       run: |
         cd dist
-        tar -czf ../slideshow-linux-x64.tar.gz linux-x64/
-        tar -czf ../slideshow-linux-arm.tar.gz linux-arm/
-        tar -czf ../slideshow-mac-arm.tar.gz mac-arm/
-        tar -czf ../slideshow-mac-x64.tar.gz mac-x64/
+        tar --owner=root --group=root -czf ../slideshow-linux-x64.tar.gz -C linux-x64/ .
+        tar --owner=root --group=root -czf ../slideshow-linux-arm.tar.gz -C linux-arm/ .
+        tar --owner=root --group=root -czf ../slideshow-mac-arm.tar.gz -C mac-arm/ .
+        tar --owner=root --group=root -czf ../slideshow-mac-x64.tar.gz -C mac-x64/ .
         zip -r ../slideshow-win-x64.zip win-x64/
 
     - name: Create GitHub Release

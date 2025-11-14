@@ -1,0 +1,1 @@
+/opt/walljm/slideshow/imgs -fstype=cifs,ro,credentials=/opt/walljm/slideshow/credential.txt,dir_mode=0755,file_mode=0644 ://<ip_of_server>/path/to/photo/folder

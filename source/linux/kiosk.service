@@ -1,0 +1,12 @@
+[Unit]
+Description=Change TTY
+Wants=gdm.service
+After=gdm.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/chvt 4
+RemainAfterExit=yes
+
+[Install]
+WantedBy=graphical.target
