@@ -46,11 +46,10 @@ public sealed class MediaService
                 logger.LogInformation("Configuration loaded from: {ConfigPath}", configPath);
                 logger.LogInformation("Configuration contents: {@Config}", config);
 
-                if (!Directory.Exists(config.FolderPath))
-                {
-                    logger.LogError("Configured folder path does not exist: {FolderPath}", this.Config.FolderPath);
-                    throw new Exception($"Configured folder path does not exist: {this.Config.FolderPath}");
-                }
+                // Ensure the local cache folder exists. We intentionally do NOT validate
+                // FolderPath here — the source share may be temporarily unavailable, and
+                // MediaSyncService will surface that.
+                Directory.CreateDirectory(config.CacheFolderPath);
 
                 return config;
             }
@@ -65,19 +64,19 @@ public sealed class MediaService
     public List<MediaFile> GetMediaFiles()
     {
         var files = new List<MediaFile>();
+        var folder = this.Config.CacheFolderPath;
 
         try
         {
-            // this shouldn't happen, since we check on start,
-            //  but it could happen if the user removes the folder after the service has started.
-            // fail hard here.  we want the user to notice it has broken.
-            if (!Directory.Exists(this.Config.FolderPath))
+            if (!Directory.Exists(folder))
             {
-                logger.LogError("Configured folder path does not exist: {FolderPath}", this.Config.FolderPath);
-                throw new Exception($"Configured folder path does not exist: {this.Config.FolderPath}");
+                // Cache folder hasn't been populated yet (first run, sync service hasn't completed).
+                // Return empty; the frontend retries on its own.
+                logger.LogWarning("Cache folder does not exist yet: {CacheFolderPath}", folder);
+                return files;
             }
 
-            var entries = Directory.GetFiles(this.Config.FolderPath);
+            var entries = Directory.GetFiles(folder);
 
             foreach (var filePath in entries)
             {
@@ -105,15 +104,15 @@ public sealed class MediaService
             };
 
             logger.LogInformation(
-                "Found {FileCount} media files in {FolderPath}, sorted by {DisplayOrder}",
+                "Found {FileCount} media files in cache {CacheFolderPath}, sorted by {DisplayOrder}",
                 files.Count,
-                this.Config.FolderPath,
+                folder,
                 this.Config.DisplayOrder
             );
         }
         catch (Exception error)
         {
-            logger.LogError(error, "Error reading media from folder: {FolderPath}", this.Config.FolderPath);
+            logger.LogError(error, "Error reading media from cache folder: {CacheFolderPath}", folder);
         }
 
         return files;
@@ -124,11 +123,11 @@ public sealed class MediaService
     {
         try
         {
-            var filePath = Path.Combine(this.Config.FolderPath, fileName);
+            var filePath = Path.Combine(this.Config.CacheFolderPath, fileName);
 
-            // Security check: ensure the file is within the configured folder
+            // Security check: ensure the file is within the cache folder
             var resolvedPath = Path.GetFullPath(filePath);
-            var resolvedFolder = Path.GetFullPath(this.Config.FolderPath);
+            var resolvedFolder = Path.GetFullPath(this.Config.CacheFolderPath);
 
             if (!resolvedPath.StartsWith(resolvedFolder, StringComparison.OrdinalIgnoreCase))
             {

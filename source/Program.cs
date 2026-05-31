@@ -25,6 +25,7 @@ builder.Services.Configure<JsonOptions>(static options =>
 // Add services
 builder.Services.AddSingleton<MediaService>();
 builder.Services.AddSingleton<EmbeddedFileProvider>();
+builder.Services.AddHostedService<MediaSyncService>();
 
 var productionConfigurationDefaults = new Dictionary<string, string?>
 {
